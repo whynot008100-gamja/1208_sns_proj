@@ -56,6 +56,8 @@ function PostCard({
   const [loadingComments, setLoadingComments] = useState(false);
   const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>(currentUserId);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
 
   // 본인 게시물 여부 확인
   const isOwner = supabaseUserId === post.user_id;
@@ -238,13 +240,29 @@ function PostCard({
           loading="lazy"
           onDoubleClick={(e) => {
             e.stopPropagation(); // 모달 열기 방지
-            // TODO: 더블탭 좋아요 (1차 제외 - UI만)
+            // 더블탭 좋아요
             if (!isLiked) {
               setIsLiked(true);
               onLike?.(post.id);
             }
+            // 큰 하트 애니메이션 표시
+            setShowDoubleTapHeart(true);
+            setTimeout(() => setShowDoubleTapHeart(false), 1000);
           }}
         />
+        {/* 더블탭 큰 하트 애니메이션 */}
+        {showDoubleTapHeart && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <Heart
+              className={cn(
+                "w-24 h-24 text-[var(--instagram-like)] fill-current",
+                "animate-in fade-in duration-300",
+                "animate-out fade-out duration-700"
+              )}
+              strokeWidth={0}
+            />
+          </div>
+        )}
       </div>
 
       {/* 액션 버튼 (48px 높이) */}
@@ -253,19 +271,22 @@ function PostCard({
           {/* 좋아요 버튼 */}
           <button
             className={cn(
-              "transition-transform active:scale-125",
+              "transition-transform duration-150",
+              isAnimating && "scale-[1.3]",
               isLiked
                 ? "text-[var(--instagram-like)]"
                 : "text-[var(--instagram-text-primary)]"
             )}
             onClick={() => {
+              setIsAnimating(true);
               setIsLiked(!isLiked);
               onLike?.(post.id);
+              setTimeout(() => setIsAnimating(false), 150);
             }}
             aria-label={isLiked ? "좋아요 취소" : "좋아요"}
           >
             <Heart
-              className={cn("w-6 h-6", isLiked && "fill-current")}
+              className={cn("w-6 h-6 transition-all duration-150", isLiked && "fill-current")}
               strokeWidth={isLiked ? 0 : 2}
             />
           </button>

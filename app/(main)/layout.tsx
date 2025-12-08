@@ -28,9 +28,9 @@ export default function MainLayout({
       <Header />
 
       {/* Main Content */}
-      <main className="md:ml-[72px] lg:ml-[244px] pt-0 lg:pt-0 pb-[50px] lg:pb-0">
+      <main className="md:ml-[72px] lg:ml-[244px] pt-[60px] md:pt-0 pb-[50px] md:pb-0">
         {/* Main Feed 영역: 최대 630px, 중앙 정렬 */}
-        <div className="max-w-[630px] mx-auto">
+        <div className="max-w-[630px] mx-auto px-0 md:px-4">
           {children}
         </div>
       </main>
