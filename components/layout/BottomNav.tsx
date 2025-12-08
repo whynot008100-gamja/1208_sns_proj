@@ -11,11 +11,13 @@
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, PlusSquare, Heart, User } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import CreatePostModal from "@/components/post/CreatePostModal";
 
 interface NavItem {
   href: string;
@@ -27,6 +29,7 @@ interface NavItem {
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const navItems: NavItem[] = [
     {
@@ -68,16 +71,13 @@ export default function BottomNav() {
           const Icon = item.icon;
           const isActive = item.isActive ? item.isActive(pathname) : false;
 
-          // 만들기 버튼은 클릭 이벤트만 (1차 제외)
+          // 만들기 버튼은 클릭 이벤트만
           if (item.href === "#") {
             return (
               <button
                 key={item.label}
                 className="flex flex-col items-center justify-center gap-1 text-[var(--instagram-text-primary)]"
-                onClick={() => {
-                  // TODO: 게시물 작성 모달 열기 (1차 제외)
-                  console.log("게시물 작성 모달 열기");
-                }}
+                onClick={() => setIsCreateModalOpen(true)}
                 aria-label={item.label}
               >
                 <Icon className="w-6 h-6" />
@@ -104,6 +104,12 @@ export default function BottomNav() {
           );
         })}
       </div>
+
+      {/* 게시물 작성 모달 */}
+      <CreatePostModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+      />
     </nav>
   );
 }
