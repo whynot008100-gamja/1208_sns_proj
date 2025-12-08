@@ -13,7 +13,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { useUser } from "@clerk/nextjs";
 import FollowButton from "./FollowButton";
 import type { UserWithStats } from "@/lib/types";
@@ -199,4 +199,6 @@ export default function ProfileHeader({
     </div>
   );
 }
+
+export default memo(ProfileHeader);
 

@@ -102,12 +102,14 @@ function PostCard({
     try {
       const response = await fetch(`/api/comments?postId=${post.id}&limit=2`);
       if (!response.ok) {
-        throw new Error("댓글을 불러오는데 실패했습니다.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "댓글을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       setComments(data.comments || []);
     } catch (err) {
       console.error("Load comments error:", err);
+      // 댓글 로드 실패는 조용히 처리 (게시물은 표시)
     } finally {
       setLoadingComments(false);
     }
@@ -138,7 +140,8 @@ function PostCard({
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "댓글 작성에 실패했습니다.");
+          const errorMessage = errorData.error || "댓글 작성에 실패했습니다.";
+          throw new Error(errorMessage);
         }
 
         const newComment: CommentWithUser = await response.json();
@@ -150,6 +153,9 @@ function PostCard({
         });
       } catch (err) {
         console.error("Comment submit error:", err);
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          throw new Error("인터넷 연결을 확인해주세요.");
+        }
         throw err;
       }
     },
@@ -177,7 +183,13 @@ function PostCard({
         }
       } catch (err) {
         console.error("Comment delete error:", err);
-        alert(err instanceof Error ? err.message : "댓글 삭제에 실패했습니다.");
+        let errorMessage = "댓글 삭제에 실패했습니다.";
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          errorMessage = "인터넷 연결을 확인해주세요.";
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+        alert(errorMessage);
       }
     },
     [loadComments]

@@ -122,7 +122,8 @@ function PostModal({
     try {
       const response = await fetch(`/api/posts/${postId}`);
       if (!response.ok) {
-        throw new Error("게시물을 불러오는데 실패했습니다.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "게시물을 불러오는데 실패했습니다.");
       }
 
       const data = await response.json();
@@ -132,11 +133,15 @@ function PostModal({
       }
     } catch (err) {
       console.error("Load post error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "게시물을 불러오는데 실패했습니다."
-      );
+      let errorMessage = "게시물을 불러오는데 실패했습니다.";
+      
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        errorMessage = "인터넷 연결을 확인해주세요.";
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -150,7 +155,8 @@ function PostModal({
     try {
       const response = await fetch(`/api/comments?postId=${postId}`);
       if (!response.ok) {
-        throw new Error("댓글을 불러오는데 실패했습니다.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "댓글을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
       setComments(data.comments || []);
@@ -201,6 +207,9 @@ function PostModal({
         }
       } catch (err) {
         console.error("Comment submit error:", err);
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          throw new Error("인터넷 연결을 확인해주세요.");
+        }
         throw err;
       }
     },
@@ -231,7 +240,13 @@ function PostModal({
         }
       } catch (err) {
         console.error("Comment delete error:", err);
-        alert(err instanceof Error ? err.message : "댓글 삭제에 실패했습니다.");
+        let errorMessage = "댓글 삭제에 실패했습니다.";
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          errorMessage = "인터넷 연결을 확인해주세요.";
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+        alert(errorMessage);
       }
     },
     [post]

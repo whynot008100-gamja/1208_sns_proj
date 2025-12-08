@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: "인증이 필요합니다." },
+        { error: "로그인이 필요합니다." },
         { status: 401 }
       );
     }
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
       console.error("Follow insert error:", insertError);
       return NextResponse.json(
-        { error: "팔로우에 실패했습니다.", details: insertError.message },
+        { error: "팔로우에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -115,8 +115,7 @@ export async function POST(request: NextRequest) {
     console.error("POST /api/follows error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "팔로우에 실패했습니다.",
+        error: "팔로우에 실패했습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 500 }
     );
@@ -136,7 +135,7 @@ export async function DELETE(request: NextRequest) {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: "인증이 필요합니다." },
+        { error: "로그인이 필요합니다." },
         { status: 401 }
       );
     }
@@ -178,7 +177,7 @@ export async function DELETE(request: NextRequest) {
     if (deleteError) {
       console.error("Follow delete error:", deleteError);
       return NextResponse.json(
-        { error: "팔로우 취소에 실패했습니다.", details: deleteError.message },
+        { error: "팔로우 취소에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -188,10 +187,7 @@ export async function DELETE(request: NextRequest) {
     console.error("DELETE /api/follows error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "팔로우 취소에 실패했습니다.",
+        error: "팔로우 취소에 실패했습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 500 }
     );

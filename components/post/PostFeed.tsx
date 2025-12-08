@@ -68,7 +68,8 @@ export default function PostFeed({
 
         const response = await fetch(`/api/posts?${params.toString()}`);
         if (!response.ok) {
-          throw new Error("게시물을 불러오는데 실패했습니다.");
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "게시물을 불러오는데 실패했습니다.");
         }
 
         const data: PostsResponse = await response.json();
@@ -96,9 +97,15 @@ export default function PostFeed({
         }
       } catch (err) {
         console.error("Load posts error:", err);
-        setError(
-          err instanceof Error ? err.message : "게시물을 불러오는데 실패했습니다."
-        );
+        let errorMessage = "게시물을 불러오는데 실패했습니다.";
+        
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          errorMessage = "인터넷 연결을 확인해주세요.";
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
         loadingRef.current = false;

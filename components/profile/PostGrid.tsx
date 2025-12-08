@@ -13,7 +13,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Heart, MessageCircle } from "lucide-react";
 import type { PostWithStats } from "@/lib/types";
@@ -55,7 +55,8 @@ export default function PostGrid({ userId, onPostClick }: PostGridProps) {
 
       const response = await fetch(`/api/posts?${params.toString()}`);
       if (!response.ok) {
-        throw new Error("게시물을 불러오는데 실패했습니다.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "게시물을 불러오는데 실패했습니다.");
       }
 
       const data: PostsResponse = await response.json();
@@ -71,7 +72,15 @@ export default function PostGrid({ userId, onPostClick }: PostGridProps) {
       }
     } catch (err) {
       console.error("Load posts error:", err);
-      setError(err instanceof Error ? err.message : "게시물을 불러오는데 실패했습니다.");
+      let errorMessage = "게시물을 불러오는데 실패했습니다.";
+      
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        errorMessage = "인터넷 연결을 확인해주세요.";
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -140,43 +149,47 @@ export default function PostGrid({ userId, onPostClick }: PostGridProps) {
     <>
       {/* 3열 그리드 */}
       <div className="grid grid-cols-3 gap-1 md:gap-4">
-        {posts.map((post) => {
-          const postUser = users.get(post.user_id);
+        {useMemo(
+          () =>
+            posts.map((post) => {
+              const postUser = users.get(post.user_id);
 
-          return (
-            <div
-              key={post.id}
-              className="relative aspect-square bg-gray-100 cursor-pointer group"
-              onClick={() => handlePostClick(post)}
-            >
-              {/* 이미지 */}
-              <Image
-                src={post.image_url}
-                alt={post.caption || "게시물 이미지"}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 33vw, 33vw"
-                loading="lazy"
-              />
+              return (
+                <div
+                  key={post.id}
+                  className="relative aspect-square bg-gray-100 cursor-pointer group"
+                  onClick={() => handlePostClick(post)}
+                >
+                  {/* 이미지 */}
+                  <Image
+                    src={post.image_url}
+                    alt={post.caption || "게시물 이미지"}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 33vw, 33vw"
+                    loading="lazy"
+                  />
 
-              {/* Hover 오버레이 (Desktop/Tablet만) */}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-6 text-white transition-opacity opacity-0 md:group-hover:opacity-100">
-                <div className="flex items-center gap-1">
-                  <Heart className="w-6 h-6 fill-current" />
-                  <span className="font-semibold">
-                    {post.likes_count.toLocaleString()}
-                  </span>
+                  {/* Hover 오버레이 (Desktop/Tablet만) */}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-6 text-white transition-opacity opacity-0 md:group-hover:opacity-100">
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-6 h-6 fill-current" />
+                      <span className="font-semibold">
+                        {post.likes_count.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="w-6 h-6 fill-current" />
+                      <span className="font-semibold">
+                        {post.comments_count.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="w-6 h-6 fill-current" />
-                  <span className="font-semibold">
-                    {post.comments_count.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              );
+            }),
+          [posts, users, handlePostClick]
+        )}
       </div>
 
       {/* 게시물 상세 모달 */}

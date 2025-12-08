@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     if (statsError) {
       console.error("Post stats query error:", statsError);
       return NextResponse.json(
-        { error: "Failed to fetch posts", details: statsError.message },
+        { error: "게시물을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Posts API error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요." },
       { status: 500 }
     );
   }
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: "인증이 필요합니다." },
+        { error: "로그인이 필요합니다." },
         { status: 401 }
       );
     }
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       console.error("User lookup error:", userError);
       return NextResponse.json(
         {
-          error: "사용자 정보를 찾을 수 없습니다. 먼저 로그인해주세요.",
+          error: "사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.",
         },
         { status: 404 }
       );
@@ -203,7 +203,7 @@ export async function POST(request: NextRequest) {
     if (uploadError || !uploadData) {
       console.error("Storage upload error:", uploadError);
       return NextResponse.json(
-        { error: "이미지 업로드에 실패했습니다." },
+        { error: "이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
       // 업로드된 파일 삭제 시도
       await serviceRoleClient.storage.from("posts").remove([fileName]);
       return NextResponse.json(
-        { error: "게시물 저장에 실패했습니다." },
+        { error: "게시물 저장에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -245,10 +245,7 @@ export async function POST(request: NextRequest) {
     console.error("POST /api/posts error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "게시물 생성에 실패했습니다.",
+        error: "게시물 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 500 }
     );

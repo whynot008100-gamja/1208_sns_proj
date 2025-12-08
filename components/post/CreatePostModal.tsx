@@ -141,11 +141,15 @@ export default function CreatePostModal({
       }
     } catch (err) {
       console.error("Upload error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "게시물 업로드에 실패했습니다. 다시 시도해주세요."
-      );
+      let errorMessage = "게시물 업로드에 실패했습니다. 다시 시도해주세요.";
+      
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        errorMessage = "인터넷 연결을 확인해주세요.";
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       setUploading(false);
     }
   }, [selectedFile, caption, onOpenChange, onSuccess, handleRemoveImage]);

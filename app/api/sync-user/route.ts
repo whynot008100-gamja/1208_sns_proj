@@ -14,7 +14,7 @@ export async function POST() {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
     // Clerk에서 사용자 정보 가져오기
@@ -22,7 +22,7 @@ export async function POST() {
     const clerkUser = await client.users.getUser(userId);
 
     if (!clerkUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "사용자 정보를 찾을 수 없습니다." }, { status: 404 });
     }
 
     // Supabase에 사용자 정보 동기화
@@ -49,7 +49,7 @@ export async function POST() {
     if (error) {
       console.error("Supabase sync error:", error);
       return NextResponse.json(
-        { error: "Failed to sync user", details: error.message },
+        { error: "사용자 동기화에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -61,7 +61,7 @@ export async function POST() {
   } catch (error) {
     console.error("Sync user error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요." },
       { status: 500 }
     );
   }

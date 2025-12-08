@@ -76,7 +76,7 @@ export async function GET(
   } catch (error) {
     console.error("Post detail API error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요." },
       { status: 500 }
     );
   }
@@ -99,7 +99,7 @@ export async function DELETE(
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: "인증이 필요합니다." },
+        { error: "로그인이 필요합니다." },
         { status: 401 }
       );
     }
@@ -138,7 +138,7 @@ export async function DELETE(
     // 4. 소유권 확인 (본인만 삭제 가능)
     if (post.user_id !== currentUser.id) {
       return NextResponse.json(
-        { error: "본인의 게시물만 삭제할 수 있습니다." },
+        { error: "권한이 없습니다. 본인의 게시물만 삭제할 수 있습니다." },
         { status: 403 }
       );
     }
@@ -192,10 +192,7 @@ export async function DELETE(
     console.error("DELETE /api/posts/[postId] error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "게시물 삭제에 실패했습니다.",
+        error: "게시물 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 500 }
     );

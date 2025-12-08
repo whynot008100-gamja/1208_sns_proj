@@ -78,9 +78,15 @@ export default function FollowButton({
       console.error("Follow action error:", error);
       // 에러 발생 시 이전 상태로 롤백
       setIsFollowing(previousState);
-      alert(
-        error instanceof Error ? error.message : "작업에 실패했습니다."
-      );
+      
+      let errorMessage = "작업에 실패했습니다.";
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        errorMessage = "인터넷 연결을 확인해주세요.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }

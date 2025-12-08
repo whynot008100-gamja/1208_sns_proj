@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Comments API GET error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요." },
       { status: 500 }
     );
   }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: "인증이 필요합니다." },
+        { error: "로그인이 필요합니다." },
         { status: 401 }
       );
     }
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
       console.error("User lookup error:", userError);
       return NextResponse.json(
         {
-          error: "사용자 정보를 찾을 수 없습니다. 먼저 로그인해주세요.",
+          error: "사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.",
         },
         { status: 404 }
       );
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     if (insertError || !comment) {
       console.error("Comment insert error:", insertError);
       return NextResponse.json(
-        { error: "댓글 작성에 실패했습니다." },
+        { error: "댓글 작성에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
     if (userDataError || !userData) {
       console.error("User data fetch error:", userDataError);
       return NextResponse.json(
-        { error: "사용자 정보를 불러오는데 실패했습니다." },
+        { error: "사용자 정보를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -206,10 +206,7 @@ export async function POST(request: NextRequest) {
     console.error("Comments API POST error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "댓글 작성에 실패했습니다.",
+        error: "댓글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 500 }
     );
@@ -229,7 +226,7 @@ export async function DELETE(request: NextRequest) {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
       return NextResponse.json(
-        { error: "인증이 필요합니다." },
+        { error: "로그인이 필요합니다." },
         { status: 401 }
       );
     }
@@ -279,7 +276,7 @@ export async function DELETE(request: NextRequest) {
     // 소유권 확인
     if (comment.user_id !== user.id) {
       return NextResponse.json(
-        { error: "본인의 댓글만 삭제할 수 있습니다." },
+        { error: "권한이 없습니다. 본인의 댓글만 삭제할 수 있습니다." },
         { status: 403 }
       );
     }
@@ -293,7 +290,7 @@ export async function DELETE(request: NextRequest) {
     if (deleteError) {
       console.error("Comment delete error:", deleteError);
       return NextResponse.json(
-        { error: "댓글 삭제에 실패했습니다." },
+        { error: "댓글 삭제에 실패했습니다. 잠시 후 다시 시도해주세요." },
         { status: 500 }
       );
     }
@@ -303,10 +300,7 @@ export async function DELETE(request: NextRequest) {
     console.error("Comments API DELETE error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "댓글 삭제에 실패했습니다.",
+        error: "댓글 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
       },
       { status: 500 }
     );
