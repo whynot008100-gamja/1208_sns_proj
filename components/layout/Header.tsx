@@ -17,7 +17,7 @@ import { UserButton } from "@clerk/nextjs";
 
 export default function Header() {
   return (
-    <header className="lg:hidden fixed top-0 left-0 right-0 h-[60px] bg-[var(--instagram-card-background)] border-b border-[var(--instagram-border)] z-50">
+    <header className="md:hidden fixed top-0 left-0 right-0 h-[60px] bg-[var(--instagram-card-background)] border-b border-[var(--instagram-border)] z-50">
       <div className="flex items-center justify-between h-full px-4">
         {/* 좌측: 로고 */}
         <Link href="/" className="text-xl font-bold">
