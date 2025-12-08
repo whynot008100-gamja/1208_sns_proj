@@ -14,6 +14,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import PostCard from "./PostCard";
 import PostCardSkeleton from "./PostCardSkeleton";
+import PostModal from "./PostModal";
 import type { PostWithStats, User } from "@/lib/types";
 
 interface PostFeedProps {
@@ -41,6 +42,10 @@ export default function PostFeed({
   const [offset, setOffset] = useState(initialPosts.length);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
+  
+  // 모달 상태 관리
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 게시물 로드 함수
   const loadPosts = useCallback(
@@ -155,9 +160,67 @@ export default function PostFeed({
 
   // 댓글 핸들러
   const handleComment = useCallback((postId: string) => {
-    // TODO: 댓글 모달 열기 (1차 제외)
-    console.log("Comment on post:", postId);
+    // 댓글 버튼 클릭 시 모달 열기
+    setSelectedPostId(postId);
+    setIsModalOpen(true);
   }, []);
+
+  // 이미지 클릭 핸들러 (모달 열기)
+  const handleImageClick = useCallback((postId: string) => {
+    setSelectedPostId(postId);
+    setIsModalOpen(true);
+  }, []);
+
+  // 모달 닫기
+  const handleModalClose = useCallback(() => {
+    setIsModalOpen(false);
+    // 모달이 닫힌 후 약간의 지연 후 selectedPostId 초기화 (애니메이션 완료 대기)
+    setTimeout(() => {
+      setSelectedPostId(null);
+    }, 200);
+  }, []);
+
+  // 이전 게시물로 이동
+  const handlePrevious = useCallback(() => {
+    if (!selectedPostId) return;
+    const currentIndex = posts.findIndex((p) => p.id === selectedPostId);
+    if (currentIndex > 0) {
+      setSelectedPostId(posts[currentIndex - 1].id);
+    }
+  }, [selectedPostId, posts]);
+
+  // 다음 게시물로 이동
+  const handleNext = useCallback(() => {
+    if (!selectedPostId) return;
+    const currentIndex = posts.findIndex((p) => p.id === selectedPostId);
+    if (currentIndex < posts.length - 1) {
+      setSelectedPostId(posts[currentIndex + 1].id);
+    }
+  }, [selectedPostId, posts]);
+
+  // 현재 게시물의 이전/다음 게시물 존재 여부 계산
+  const navigationInfo = useMemo(() => {
+    if (!selectedPostId) {
+      return { hasPrevious: false, hasNext: false };
+    }
+    const currentIndex = posts.findIndex((p) => p.id === selectedPostId);
+    return {
+      hasPrevious: currentIndex > 0,
+      hasNext: currentIndex < posts.length - 1,
+    };
+  }, [selectedPostId, posts]);
+
+  // 선택된 게시물 정보
+  const selectedPost = useMemo(() => {
+    if (!selectedPostId) return undefined;
+    return posts.find((p) => p.id === selectedPostId);
+  }, [selectedPostId, posts]);
+
+  // 선택된 게시물의 사용자 정보
+  const selectedPostUser = useMemo(() => {
+    if (!selectedPost) return undefined;
+    return users.get(selectedPost.user_id);
+  }, [selectedPost, users]);
 
   // 에러 상태
   if (error && posts.length === 0) {
@@ -201,10 +264,11 @@ export default function PostFeed({
           user={user}
           onLike={handleLike}
           onComment={handleComment}
+          onImageClick={handleImageClick}
         />
       );
     });
-  }, [posts, users, handleLike, handleComment]);
+  }, [posts, users, handleLike, handleComment, handleImageClick]);
 
   return (
     <div className="w-full">
@@ -229,6 +293,21 @@ export default function PostFeed({
         <div className="text-center py-8 text-[var(--instagram-text-secondary)] text-sm">
           모든 게시물을 불러왔습니다.
         </div>
+      )}
+
+      {/* 게시물 상세 모달 */}
+      {selectedPostId && (
+        <PostModal
+          postId={selectedPostId}
+          post={selectedPost}
+          user={selectedPostUser}
+          open={isModalOpen}
+          onOpenChange={handleModalClose}
+          onPrevious={navigationInfo.hasPrevious ? handlePrevious : undefined}
+          onNext={navigationInfo.hasNext ? handleNext : undefined}
+          hasPrevious={navigationInfo.hasPrevious}
+          hasNext={navigationInfo.hasNext}
+        />
       )}
     </div>
   );

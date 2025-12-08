@@ -34,6 +34,7 @@ interface PostCardProps {
   currentUserId?: string;
   onLike?: (postId: string) => void;
   onComment?: (postId: string) => void;
+  onImageClick?: (postId: string) => void; // 이미지 클릭 시 모달 열기
 }
 
 function PostCard({
@@ -42,6 +43,7 @@ function PostCard({
   currentUserId,
   onLike,
   onComment,
+  onImageClick,
 }: PostCardProps) {
   const { user: clerkUser } = useUser();
   const supabase = useClerkSupabaseClient();
@@ -221,7 +223,10 @@ function PostCard({
       </header>
 
       {/* 이미지 영역 (1:1 정사각형) */}
-      <div className="relative w-full aspect-square bg-gray-100">
+      <div
+        className="relative w-full aspect-square bg-gray-100 cursor-pointer"
+        onClick={() => onImageClick?.(post.id)}
+      >
         <Image
           src={post.image_url}
           alt={post.caption || "게시물 이미지"}
@@ -230,7 +235,8 @@ function PostCard({
           sizes="(max-width: 768px) 100vw, 630px"
           priority={false}
           loading="lazy"
-          onDoubleClick={() => {
+          onDoubleClick={(e) => {
+            e.stopPropagation(); // 모달 열기 방지
             // TODO: 더블탭 좋아요 (1차 제외 - UI만)
             if (!isLiked) {
               setIsLiked(true);
@@ -267,6 +273,7 @@ function PostCard({
           <button
             className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
             onClick={() => {
+              onImageClick?.(post.id); // 댓글 버튼 클릭 시 모달 열기
               onComment?.(post.id);
             }}
             aria-label="댓글"
