@@ -9,7 +9,6 @@
  */
 
 import { koKR } from "@clerk/localizations";
-import type { LocalizationResource } from "@clerk/types";
 
 /**
  * 커스텀 한국어 로컬라이제이션
@@ -25,7 +24,7 @@ import type { LocalizationResource } from "@clerk/types";
  * </ClerkProvider>
  * ```
  */
-export const customKoKR: LocalizationResource = {
+export const customKoKR = {
   ...koKR,
   
   // 커스텀 에러 메시지
