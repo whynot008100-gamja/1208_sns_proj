@@ -84,7 +84,7 @@ export default function FollowButton({
     } finally {
       setIsLoading(false);
     }
-  }, [isFollowing, followingId, onFollowChange, isLoading]);
+  }, [isFollowing, followingId, onFollowChange]);
 
   // 버튼 텍스트 결정
   const getButtonText = () => {

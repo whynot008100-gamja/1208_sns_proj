@@ -41,19 +41,23 @@ export default function ProfileHeader({
 
   // 팔로우 상태 변경 핸들러 (통계 업데이트 포함)
   const handleFollowChange = (isFollowing: boolean) => {
-    setUser((prev) => ({
-      ...prev,
-      isFollowing,
-      followers_count: isFollowing
+    setUser((prev) => {
+      const updatedFollowersCount = isFollowing
         ? prev.followers_count + 1
-        : Math.max(0, prev.followers_count - 1),
-    }));
-    onFollowChange?.(isFollowing);
-    onStatsUpdate?.({
-      followers_count: isFollowing
-        ? user.followers_count + 1
-        : Math.max(0, user.followers_count - 1),
+        : Math.max(0, prev.followers_count - 1);
+      
+      // 통계 업데이트 콜백 호출
+      onStatsUpdate?.({
+        followers_count: updatedFollowersCount,
+      });
+      
+      return {
+        ...prev,
+        isFollowing,
+        followers_count: updatedFollowersCount,
+      };
     });
+    onFollowChange?.(isFollowing);
   };
 
   return (
