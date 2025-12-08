@@ -134,6 +134,8 @@ export default function FollowButton({
         getButtonStyle(),
         className
       )}
+      aria-label={isLoading ? "처리 중" : isFollowing ? (isHovering ? "언팔로우" : "팔로잉 중") : "팔로우"}
+      aria-busy={isLoading}
     >
       {getButtonText()}
     </Button>

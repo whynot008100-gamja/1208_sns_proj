@@ -10,11 +10,11 @@
     <img src="https://img.shields.io/badge/-Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="supabase" />
   </div>
 
-  <h1 align="center">SaaS 템플릿</h1>
+  <h1 align="center">Mini Instagram - SNS</h1>
   <h3 align="center">Next.js 15 + Clerk + Supabase</h3>
 
   <p align="center">
-    프로덕션 레디 SaaS 애플리케이션을 위한 풀스택 보일러플레이트
+    Instagram 스타일의 소셜 네트워크 서비스 (SNS) 애플리케이션
   </p>
 </div>
 
@@ -29,14 +29,15 @@
 
 ## 소개
 
-Next.js 15, Clerk, Supabase를 활용한 모던 SaaS 애플리케이션 템플릿입니다.
+Instagram 웹 UI/UX를 재현한 소셜 네트워크 서비스 (SNS) 애플리케이션입니다.
 
 **핵심 특징:**
 - ✨ Next.js 15 + React 19 최신 기능 활용
 - 🔐 Clerk와 Supabase 네이티브 통합 (2025년 권장 방식)
 - 🎨 Tailwind CSS v4 + shadcn/ui
-- 📱 완전한 반응형 디자인
+- 📱 완전한 반응형 디자인 (Mobile, Tablet, Desktop)
 - 🌐 한국어 지원 (Clerk 한국어 로컬라이제이션)
+- 📸 게시물 작성, 좋아요, 댓글, 팔로우 기능
 
 ## 기술 스택
 
@@ -77,6 +78,18 @@ Next.js 15, Clerk, Supabase를 활용한 모던 SaaS 애플리케이션 템플�
 - Clerk 사용자 자동으로 Supabase DB에 동기화
 - 한국어 UI 지원
 
+### 📸 게시물 기능
+- 이미지 업로드 (Supabase Storage)
+- 게시물 작성 및 삭제
+- 게시물 피드 (무한 스크롤)
+- 게시물 상세 모달 (Desktop/Mobile 반응형)
+
+### ❤️ 소셜 기능
+- 좋아요 기능 (클릭 애니메이션, 더블탭 좋아요)
+- 댓글 작성 및 삭제
+- 팔로우/언팔로우 기능
+- 프로필 페이지 (게시물 그리드, 통계)
+
 ### 🗄️ 데이터베이스 통합
 - **Supabase 공식 구조**: `@supabase/ssr` 기반 cookie-based auth
 - **Clerk 통합**: 네이티브 통합 방식 (2025년 권장)
@@ -88,10 +101,11 @@ Next.js 15, Clerk, Supabase를 활용한 모던 SaaS 애플리케이션 템플�
 - SQL 마이그레이션 시스템
 
 ### 🎨 UI/UX
+- Instagram 스타일 디자인
 - shadcn/ui 기반 모던 컴포넌트
-- 완전한 반응형 디자인
-- 다크/라이트 모드 지원 가능
-- 접근성 준수 (WCAG)
+- 완전한 반응형 디자인 (Mobile, Tablet, Desktop)
+- 접근성 준수 (WCAG 2.1 AA)
+- 애니메이션 효과 (좋아요, 로딩)
 
 ### 🏗️ 아키텍처
 - Server Actions 우선 사용
@@ -201,8 +215,11 @@ pnpm install
 **6-2. .env 파일 생성**
 
 ```bash
+# .env.example 파일을 복사하여 .env 파일 생성
 cp .env.example .env
 ```
+
+`.env.example` 파일에는 모든 필요한 환경 변수가 예시 값으로 포함되어 있습니다. 실제 값을 입력하세요.
 
 **6-3. Supabase 환경 변수 설정**
 
@@ -302,34 +319,31 @@ pnpm lint
 
 ### Supabase RLS (Row Level Security) 정책
 
-프로젝트의 `users` 테이블에는 기본 RLS 정책이 설정되어 있습니다:
+**개발 환경**: 현재 RLS가 비활성화되어 있습니다. 개발 중에는 API Routes에서 인증 검증을 수행합니다.
 
-- **SELECT**: 사용자는 자신의 데이터만 조회 가능
-- **INSERT**: 새 사용자 생성 가능
-- **UPDATE**: 사용자는 자신의 데이터만 수정 가능
-
-추가 테이블 생성 시 RLS 정책을 반드시 설정하세요:
+**프로덕션 환경**: 배포 전에 적절한 RLS 정책을 설정해야 합니다.
 
 ```sql
--- 테이블 생성
-CREATE TABLE your_table (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id TEXT NOT NULL REFERENCES users(clerk_id),
-  -- 기타 컬럼들
-);
+-- 예시: posts 테이블 RLS 정책
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 
--- RLS 활성화
-ALTER TABLE your_table ENABLE ROW LEVEL SECURITY;
+-- SELECT: 모든 인증된 사용자가 조회 가능
+CREATE POLICY "Authenticated users can view posts"
+  ON posts FOR SELECT
+  TO authenticated
+  USING (true);
 
--- SELECT 정책
-CREATE POLICY "Users can view their own data"
-  ON your_table FOR SELECT
-  USING (auth.jwt()->>'sub' = user_id);
+-- INSERT: 본인만 게시물 작성 가능
+CREATE POLICY "Users can insert their own posts"
+  ON posts FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.jwt()->>'sub' = user_id::text);
 
--- INSERT 정책
-CREATE POLICY "Users can insert their own data"
-  ON your_table FOR INSERT
-  WITH CHECK (auth.jwt()->>'sub' = user_id);
+-- DELETE: 본인만 게시물 삭제 가능
+CREATE POLICY "Users can delete their own posts"
+  ON posts FOR DELETE
+  TO authenticated
+  USING (auth.jwt()->>'sub' = user_id::text);
 ```
 
 ### 추가 로그인 방식 설정
@@ -395,6 +409,30 @@ saas-template/
 - **`hooks/use-sync-user.ts`**: Clerk 사용자를 Supabase에 자동 동기화
 - **`components/providers/sync-user-provider.tsx`**: 앱 전역에서 사용자 동기화 실행
 - **`CLAUDE.md`**: Claude Code를 위한 프로젝트 가이드
+
+## 배포
+
+### Vercel 배포
+
+1. [Vercel](https://vercel.com)에 프로젝트를 연결
+2. 환경 변수를 Vercel 대시보드에 설정:
+   - Clerk 환경 변수
+   - Supabase 환경 변수
+3. 배포 완료 후 프로덕션 URL 확인
+
+### 환경 변수 설정
+
+Vercel 대시보드에서 다음 환경 변수를 설정하세요:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_CLERK_SIGN_IN_URL`
+- `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL`
+- `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_STORAGE_BUCKET`
 
 ## 추가 리소스
 

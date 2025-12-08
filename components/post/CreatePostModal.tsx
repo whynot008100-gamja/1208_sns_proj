@@ -135,7 +135,7 @@ export default function CreatePostModal({
       onSuccess?.();
 
       // 피드 새로고침 (간단하게 페이지 새로고침)
-      // TODO: 더 나은 방법은 Context나 전역 상태를 사용하는 것
+      // 참고: 향후 개선 시 Context나 전역 상태를 사용하는 것을 고려
       if (typeof window !== "undefined") {
         window.location.reload();
       }
@@ -192,6 +192,7 @@ export default function CreatePostModal({
                 accept="image/jpeg,image/png,image/webp"
                 onChange={handleFileSelect}
                 className="hidden"
+                aria-label="이미지 파일 선택"
               />
               <Upload className="w-12 h-12 text-[var(--instagram-text-secondary)] mb-4" />
               <p className="text-lg font-semibold mb-2 text-[var(--instagram-text-primary)]">
@@ -201,6 +202,7 @@ export default function CreatePostModal({
                 onClick={handleSelectFile}
                 variant="default"
                 className="bg-[var(--instagram-blue)] hover:bg-[var(--instagram-blue)]/90 text-white"
+                aria-label="컴퓨터에서 이미지 파일 선택"
               >
                 컴퓨터에서 선택
               </Button>
@@ -244,14 +246,18 @@ export default function CreatePostModal({
                   }}
                   className="min-h-[100px] resize-none"
                   maxLength={MAX_CAPTION_LENGTH}
+                  aria-label="게시물 캡션 입력"
+                  aria-describedby={error ? "caption-error" : "caption-length"}
                 />
                 <div className="flex justify-end">
                   <span
+                    id="caption-length"
                     className={cn(
                       "text-xs text-[var(--instagram-text-secondary)]",
                       caption.length >= MAX_CAPTION_LENGTH &&
                         "text-red-500"
                     )}
+                    aria-live="polite"
                   >
                     {caption.length} / {MAX_CAPTION_LENGTH}
                   </span>
@@ -262,8 +268,8 @@ export default function CreatePostModal({
 
           {/* 에러 메시지 */}
           {error && (
-            <div className="px-6 py-3 bg-red-50 border-t border-red-200">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="px-6 py-3 bg-red-50 border-t border-red-200" role="alert">
+              <p id="caption-error" className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
@@ -274,6 +280,7 @@ export default function CreatePostModal({
                 onClick={handleUpload}
                 disabled={uploading}
                 className="bg-[var(--instagram-blue)] hover:bg-[var(--instagram-blue)]/90 text-white disabled:opacity-50"
+                aria-label="게시물 공유하기"
               >
                 {uploading ? (
                   <>

@@ -162,7 +162,6 @@ export default function PostFeed({
   // 좋아요 핸들러
   const handleLike = useCallback((postId: string) => {
     // TODO: 좋아요 API 호출 (1차 제외 - UI만)
-    console.log("Like post:", postId);
   }, []);
 
   // 댓글 핸들러
@@ -243,38 +242,7 @@ export default function PostFeed({
     [selectedPostId]
   );
 
-  // 에러 상태
-  if (error && posts.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <p className="text-[var(--instagram-text-secondary)] mb-4">{error}</p>
-        <button
-          onClick={() => {
-            setError(null);
-            setOffset(0);
-            setPosts([]);
-            loadPosts(0);
-          }}
-          className="px-4 py-2 bg-[var(--instagram-blue)] text-white rounded-lg hover:opacity-90 transition-opacity"
-        >
-          다시 시도
-        </button>
-      </div>
-    );
-  }
-
-  // 빈 상태
-  if (!loading && posts.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <p className="text-[var(--instagram-text-secondary)]">
-          게시물이 없습니다.
-        </p>
-      </div>
-    );
-  }
-
-  // 게시물 목록 메모이제이션
+  // 게시물 목록 메모이제이션 (조건부 return 전에 호출)
   const postCards = useMemo(() => {
     return posts.map((post) => {
       const user = users.get(post.user_id);

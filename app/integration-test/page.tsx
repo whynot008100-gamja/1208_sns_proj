@@ -254,7 +254,7 @@ export default function IntegrationTestPage() {
       <section className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
         <h2 className="text-lg font-semibold mb-2">테스트 방법</h2>
         <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-          <li>위의 "인증 정보" 섹션에서 Clerk 토큰이 설정되었는지 확인</li>
+          <li>위의 &quot;인증 정보&quot; 섹션에서 Clerk 토큰이 설정되었는지 확인</li>
           <li>새 작업을 생성하여 Supabase에 데이터가 저장되는지 확인</li>
           <li>작업 목록을 새로고침하여 자신의 작업만 조회되는지 확인 (RLS 정책 작동 확인)</li>
           <li>브라우저 개발자 도구 &gt; Network 탭에서 Supabase 요청의 Authorization 헤더 확인</li>

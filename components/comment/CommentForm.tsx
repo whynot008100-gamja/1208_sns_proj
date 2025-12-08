@@ -102,7 +102,9 @@ export default function CommentForm({
     <div className="border-t border-[var(--instagram-border)] px-4 py-3">
       {/* 에러 메시지 */}
       {error && (
-        <div className="mb-2 text-xs text-red-500">{error}</div>
+        <div id="comment-error" className="mb-2 text-xs text-red-500" role="alert">
+          {error}
+        </div>
       )}
 
       {/* 입력 폼 */}
@@ -133,6 +135,9 @@ export default function CommentForm({
             "placeholder:text-[var(--instagram-text-secondary)]"
           )}
           maxLength={MAX_COMMENT_LENGTH}
+          aria-label="댓글 입력"
+          aria-describedby={error ? "comment-error" : undefined}
+          aria-invalid={!!error}
         />
         <Button
           type="submit"
@@ -144,6 +149,8 @@ export default function CommentForm({
               : "text-[var(--instagram-text-secondary)] cursor-not-allowed"
           )}
           variant="ghost"
+          aria-label="댓글 게시"
+          aria-busy={submitting}
         >
           {submitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />

@@ -111,54 +111,23 @@ export default function PostGrid({ userId, onPostClick }: PostGridProps) {
     setSelectedUser(undefined);
   }, []);
 
-  // 로딩 상태
-  if (loading) {
-    return (
-      <div className="grid grid-cols-3 gap-1 md:gap-4">
-        {Array.from({ length: 9 }).map((_, index) => (
-          <div
-            key={index}
-            className="aspect-square bg-gray-200 animate-pulse"
-          />
-        ))}
-      </div>
-    );
-  }
-
-  // 에러 상태
-  if (error) {
-    return (
-      <div className="text-center py-8 text-[var(--instagram-text-secondary)]">
-        {error}
-      </div>
-    );
-  }
-
-  // 게시물이 없는 경우
-  if (posts.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <div className="text-[var(--instagram-text-secondary)] text-lg">
-          게시물이 없습니다.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {/* 3열 그리드 */}
-      <div className="grid grid-cols-3 gap-1 md:gap-4">
-        {useMemo(
-          () =>
-            posts.map((post) => {
-              const postUser = users.get(post.user_id);
-
-              return (
+  // 게시물 그리드 메모이제이션 (조건부 return 전에 호출)
+  const postGridItems = useMemo(() => {
+    return posts.map((post) => {
+      return (
                 <div
                   key={post.id}
                   className="relative aspect-square bg-gray-100 cursor-pointer group"
                   onClick={() => handlePostClick(post)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handlePostClick(post);
+                    }
+                  }}
+                  aria-label={`게시물 보기: ${post.caption || "이미지"}`}
                 >
                   {/* 이미지 */}
                   <Image
@@ -187,9 +156,25 @@ export default function PostGrid({ userId, onPostClick }: PostGridProps) {
                   </div>
                 </div>
               );
-            }),
-          [posts, users, handlePostClick]
-        )}
+    });
+  }, [posts, users, handlePostClick]);
+
+  // 게시물이 없는 경우
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-[var(--instagram-text-secondary)] text-lg">
+          게시물이 없습니다.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* 3열 그리드 */}
+      <div className="grid grid-cols-3 gap-1 md:gap-4">
+        {postGridItems}
       </div>
 
       {/* 게시물 상세 모달 */}

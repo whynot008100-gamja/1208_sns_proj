@@ -28,19 +28,19 @@
 
 ## 1. 기본 세팅
 
-- [ ] Tailwind CSS 설정 (인스타 컬러 스키마)
-  - [ ] `app/globals.css`에 Instagram 컬러 변수 추가
-  - [ ] 타이포그래피 설정
-- [ ] Supabase 데이터베이스 마이그레이션
-  - [ ] `db.sql` 파일을 Supabase에 적용
-  - [ ] 테이블 생성 확인 (users, posts, likes, comments, follows)
-  - [ ] Views 및 Triggers 확인
-- [ ] Supabase Storage 버킷 생성
-  - [ ] `posts` 버킷 생성 (공개 읽기)
-  - [ ] 업로드 정책 설정
-- [ ] TypeScript 타입 정의
-  - [ ] `lib/types.ts` 파일 생성
-  - [ ] User, Post, Like, Comment, Follow 타입 정의
+- [x] Tailwind CSS 설정 (인스타 컬러 스키마)
+  - [x] `app/globals.css`에 Instagram 컬러 변수 추가
+  - [x] 타이포그래피 설정
+- [x] Supabase 데이터베이스 마이그레이션
+  - [x] `db.sql` 파일을 Supabase에 적용
+  - [x] 테이블 생성 확인 (users, posts, likes, comments, follows)
+  - [x] Views 및 Triggers 확인
+- [x] Supabase Storage 버킷 생성
+  - [x] `posts` 버킷 생성 (공개 읽기)
+  - [x] 업로드 정책 설정
+- [x] TypeScript 타입 정의
+  - [x] `lib/types.ts` 파일 생성
+  - [x] User, Post, Like, Comment, Follow 타입 정의
 
 ## 2. 레이아웃 구조
 

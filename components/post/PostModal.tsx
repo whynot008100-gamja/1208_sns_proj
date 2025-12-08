@@ -341,20 +341,24 @@ function PostModal({
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--instagram-border)]">
           <div className="flex items-center gap-3">
-            <Link href={user ? `/profile/${user.id}` : "#"}>
+            <Link 
+              href={user ? `/profile/${user.id}` : "#"}
+              aria-label={`${user?.name || "사용자"} 프로필 보기`}
+            >
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                 {user?.name ? (
-                  <span className="text-xs font-semibold text-gray-600">
+                  <span className="text-xs font-semibold text-gray-600" aria-hidden="true">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 ) : (
-                  <div className="w-full h-full bg-gray-300" />
+                  <div className="w-full h-full bg-gray-300" aria-hidden="true" />
                 )}
               </div>
             </Link>
             <Link
               href={user ? `/profile/${user.id}` : "#"}
               className="font-semibold text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+              aria-label={`${user?.name || "사용자"} 프로필 보기`}
             >
               {user?.name || "Unknown"}
             </Link>
@@ -376,6 +380,7 @@ function PostModal({
               <Link
                 href={user ? `/profile/${user.id}` : "#"}
                 className="font-semibold hover:opacity-70 transition-opacity mr-2"
+                aria-label={`${user?.name || "사용자"} 프로필 보기`}
               >
                 {user?.name || "Unknown"}
               </Link>
@@ -427,6 +432,7 @@ function PostModal({
                 <button
                   className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
                   aria-label="댓글"
+                  disabled
                 >
                   <MessageCircle className="w-6 h-6" />
                 </button>
@@ -496,20 +502,24 @@ function PostModal({
         {/* 게시물 헤더 */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--instagram-border)]">
           <div className="flex items-center gap-3">
-            <Link href={user ? `/profile/${user.id}` : "#"}>
+            <Link 
+              href={user ? `/profile/${user.id}` : "#"}
+              aria-label={`${user?.name || "사용자"} 프로필 보기`}
+            >
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                 {user?.name ? (
-                  <span className="text-xs font-semibold text-gray-600">
+                  <span className="text-xs font-semibold text-gray-600" aria-hidden="true">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 ) : (
-                  <div className="w-full h-full bg-gray-300" />
+                  <div className="w-full h-full bg-gray-300" aria-hidden="true" />
                 )}
               </div>
             </Link>
             <Link
               href={user ? `/profile/${user.id}` : "#"}
               className="font-semibold text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+              aria-label={`${user?.name || "사용자"} 프로필 보기`}
             >
               {user?.name || "Unknown"}
             </Link>
@@ -557,6 +567,7 @@ function PostModal({
               <button
                 className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
                 aria-label="댓글"
+                disabled
               >
                 <MessageCircle className="w-6 h-6" />
               </button>

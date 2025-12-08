@@ -204,14 +204,17 @@ function PostCard({
       <header className="flex items-center justify-between px-4 py-3 h-[60px]">
         <div className="flex items-center gap-3">
           {/* 프로필 이미지: 32px 원형 */}
-          <Link href={user ? `/profile/${user.id}` : "#"}>
+          <Link 
+            href={user ? `/profile/${user.id}` : "#"}
+            aria-label={`${user?.name || "사용자"} 프로필 보기`}
+          >
             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
               {user?.name ? (
-                <span className="text-xs font-semibold text-gray-600">
+                <span className="text-xs font-semibold text-gray-600" aria-hidden="true">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               ) : (
-                <div className="w-full h-full bg-gray-300" />
+                <div className="w-full h-full bg-gray-300" aria-hidden="true" />
               )}
             </div>
           </Link>
@@ -220,6 +223,7 @@ function PostCard({
           <Link
             href={user ? `/profile/${user.id}` : "#"}
             className="font-semibold text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+            aria-label={`${user?.name || "사용자"} 프로필 보기`}
           >
             {user?.name || "Unknown"}
           </Link>
@@ -241,6 +245,15 @@ function PostCard({
       <div
         className="relative w-full aspect-square bg-gray-100 cursor-pointer"
         onClick={() => onImageClick?.(post.id)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onImageClick?.(post.id);
+          }
+        }}
+        aria-label="게시물 상세 보기"
       >
         <Image
           src={post.image_url}
@@ -350,6 +363,7 @@ function PostCard({
             <Link
               href={user ? `/profile/${user.id}` : "#"}
               className="font-semibold hover:opacity-70 transition-opacity mr-2"
+              aria-label={`${user?.name || "사용자"} 프로필 보기`}
             >
               {user?.name || "Unknown"}
             </Link>
@@ -358,6 +372,7 @@ function PostCard({
               <button
                 className="text-[var(--instagram-text-secondary)] hover:text-[var(--instagram-text-primary)] ml-1"
                 onClick={() => setShowFullCaption(true)}
+                aria-label="캡션 전체 보기"
               >
                 ... 더 보기
               </button>
@@ -387,6 +402,7 @@ function PostCard({
               // TODO: 댓글 상세 모달 열기 (1차 제외)
               onComment?.(post.id);
             }}
+            aria-label={`댓글 ${post.comments_count}개 모두 보기`}
           >
             댓글 {post.comments_count}개 모두 보기
           </button>

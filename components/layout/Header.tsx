@@ -31,9 +31,9 @@ export default function Header() {
             className="text-[var(--instagram-text-primary)]"
             onClick={() => {
               // TODO: 알림 페이지로 이동 (1차 제외)
-              console.log("알림 페이지");
             }}
             aria-label="알림"
+            disabled
           >
             <Heart className="w-6 h-6" />
           </button>
@@ -43,9 +43,9 @@ export default function Header() {
             className="text-[var(--instagram-text-primary)]"
             onClick={() => {
               // TODO: DM 페이지로 이동 (1차 제외)
-              console.log("DM 페이지");
             }}
             aria-label="메시지"
+            disabled
           >
             <MessageCircle className="w-6 h-6" />
           </button>

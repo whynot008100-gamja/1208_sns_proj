@@ -77,6 +77,7 @@ export default function DeletePostDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
+            aria-label="게시물 삭제 취소"
           >
             취소
           </Button>
@@ -84,6 +85,7 @@ export default function DeletePostDialog({
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
+            aria-label={isDeleting ? "게시물 삭제 중" : "게시물 삭제 확인"}
           >
             {isDeleting ? "삭제 중..." : "삭제"}
           </Button>

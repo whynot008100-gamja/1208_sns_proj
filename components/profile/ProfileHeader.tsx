@@ -25,7 +25,7 @@ interface ProfileHeaderProps {
   onStatsUpdate?: (stats: { followers_count: number }) => void; // 통계 업데이트 콜백
 }
 
-export default function ProfileHeader({
+function ProfileHeader({
   user: initialUser,
   isOwnProfile,
   onFollowChange,

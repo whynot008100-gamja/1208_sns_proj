@@ -86,6 +86,7 @@ export default function Sidebar() {
                     "text-[var(--instagram-text-primary)]"
                   )}
                   onClick={() => setIsCreateModalOpen(true)}
+                  aria-label={item.label}
                 >
                   <Icon className="w-6 h-6" />
                   <span className="hidden lg:inline text-base font-medium">
@@ -106,6 +107,8 @@ export default function Sidebar() {
                     ? "font-semibold text-[var(--instagram-text-primary)]"
                     : "text-[var(--instagram-text-primary)]"
                 )}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
               >
                 <Icon
                   className={cn(
