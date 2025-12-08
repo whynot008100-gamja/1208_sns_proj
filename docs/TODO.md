@@ -134,37 +134,37 @@
 
 ## 7. 게시물 상세 모달
 
-- [ ] `components/post/PostModal.tsx`
-  - [ ] Desktop: 모달 형식 (이미지 50% + 댓글 50%)
-  - [ ] Mobile: 전체 페이지로 전환
-  - [ ] 닫기 버튼 (✕)
-  - [ ] 이전/다음 게시물 네비게이션 (Desktop)
-- [ ] PostCard 클릭 시 PostModal 열기
-  - [ ] 게시물 상세 정보 로드
-  - [ ] 댓글 전체 목록 표시
+- [x] `components/post/PostModal.tsx`
+  - [x] Desktop: 모달 형식 (이미지 50% + 댓글 50%)
+  - [x] Mobile: 전체 페이지로 전환
+  - [x] 닫기 버튼 (✕)
+  - [x] 이전/다음 게시물 네비게이션 (Desktop)
+- [x] PostCard 클릭 시 PostModal 열기
+  - [x] 게시물 상세 정보 로드
+  - [x] 댓글 전체 목록 표시
 
 ## 8. 프로필 페이지
 
-- [ ] `app/(main)/profile/[userId]/page.tsx`
-  - [ ] 동적 라우트 생성
-  - [ ] ProfileHeader 통합
-  - [ ] PostGrid 통합
-- [ ] `components/profile/ProfileHeader.tsx`
-  - [ ] 프로필 이미지 (150px Desktop / 90px Mobile)
-  - [ ] 사용자명
-  - [ ] 통계 (게시물 수, 팔로워 수, 팔로잉 수)
-  - [ ] "팔로우" / "팔로잉" 버튼 (다른 사람 프로필)
-  - [ ] "프로필 편집" 버튼 (본인 프로필, 1차 제외)
-- [ ] `components/profile/PostGrid.tsx`
-  - [ ] 3열 그리드 레이아웃 (반응형)
-  - [ ] 1:1 정사각형 썸네일
-  - [ ] Hover 시 좋아요/댓글 수 표시
-  - [ ] 클릭 시 게시물 상세 모달 열기
-- [ ] `app/api/users/[userId]/route.ts`
-  - [ ] GET: 사용자 정보 조회
-  - [ ] user_stats 뷰 활용
-- [ ] Sidebar "프로필" 버튼 연결
-  - [ ] `/profile`로 리다이렉트 (본인 프로필)
+- [x] `app/(main)/profile/[userId]/page.tsx`
+  - [x] 동적 라우트 생성
+  - [x] ProfileHeader 통합
+  - [x] PostGrid 통합
+- [x] `components/profile/ProfileHeader.tsx`
+  - [x] 프로필 이미지 (150px Desktop / 90px Mobile)
+  - [x] 사용자명
+  - [x] 통계 (게시물 수, 팔로워 수, 팔로잉 수)
+  - [x] "팔로우" / "팔로잉" 버튼 (다른 사람 프로필)
+  - [x] "프로필 편집" 버튼 (본인 프로필, 1차 제외)
+- [x] `components/profile/PostGrid.tsx`
+  - [x] 3열 그리드 레이아웃 (반응형)
+  - [x] 1:1 정사각형 썸네일
+  - [x] Hover 시 좋아요/댓글 수 표시
+  - [x] 클릭 시 게시물 상세 모달 열기
+- [x] `app/api/users/[userId]/route.ts`
+  - [x] GET: 사용자 정보 조회
+  - [x] user_stats 뷰 활용
+- [x] Sidebar "프로필" 버튼 연결
+  - [x] `/profile`로 리다이렉트 (본인 프로필)
 
 ## 9. 팔로우 기능
 

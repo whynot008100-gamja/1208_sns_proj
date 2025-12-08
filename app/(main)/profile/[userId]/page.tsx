@@ -10,9 +10,10 @@
  * @see docs/PRD.md
  */
 
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { getServiceRoleClient } from "@/utils/supabase/service-role";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import PostGrid from "@/components/profile/PostGrid";
 import type { UserWithStats } from "@/lib/types";
@@ -36,13 +37,63 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   try {
     // 1. Clerk user ID로 Supabase user 조회
-    const { data: user, error: userError } = await supabase
+    let { data: user, error: userError } = await supabase
       .from("users")
       .select("id, clerk_id, name, created_at")
       .eq("clerk_id", clerkUserId)
       .single();
 
+    // 사용자가 없고 본인 프로필인 경우 자동 동기화 시도
+    if ((userError || !user) && isOwnProfile && currentClerkUserId) {
+      try {
+        console.log("User not found, attempting to sync user:", clerkUserId);
+        
+        // Clerk에서 사용자 정보 가져오기
+        const client = await clerkClient();
+        const clerkUser = await client.users.getUser(clerkUserId);
+
+        if (clerkUser) {
+          // Supabase에 사용자 정보 동기화
+          const serviceRoleClient = getServiceRoleClient();
+          const { data: syncedUser, error: syncError } = await serviceRoleClient
+            .from("users")
+            .upsert(
+              {
+                clerk_id: clerkUser.id,
+                name:
+                  clerkUser.fullName ||
+                  clerkUser.username ||
+                  clerkUser.emailAddresses[0]?.emailAddress ||
+                  "Unknown",
+              },
+              {
+                onConflict: "clerk_id",
+              }
+            )
+            .select()
+            .single();
+
+          if (!syncError && syncedUser) {
+            user = syncedUser;
+            userError = null;
+            console.log("User synced successfully:", syncedUser.id);
+          } else {
+            console.error("Failed to sync user:", syncError);
+          }
+        }
+      } catch (syncError) {
+        console.error("Error syncing user:", syncError);
+        // 동기화 실패해도 계속 진행 (다시 조회 시도)
+      }
+    }
+
+    // 여전히 사용자를 찾을 수 없는 경우
     if (userError || !user) {
+      console.error("User not found after sync attempt:", {
+        clerkUserId,
+        isOwnProfile,
+        userError,
+      });
       notFound();
     }
 

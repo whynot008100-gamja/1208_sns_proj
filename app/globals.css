@@ -96,7 +96,8 @@
   --instagram-like: #ed4956; /* 빨간 하트 */
 
   /* 타이포그래피 */
-  --font-instagram: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-instagram: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   --text-xs: 12px; /* 시간 */
   --text-sm: 14px; /* 기본 */
   --text-base: 16px; /* 입력창 */
@@ -147,9 +148,6 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-instagram);
-  }
-  main {
-    @apply max-w-7xl mx-auto pt-16 px-4;
   }
 }
 

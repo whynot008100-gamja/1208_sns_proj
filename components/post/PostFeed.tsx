@@ -274,6 +274,37 @@ export default function PostFeed({
 
   return (
     <div className="w-full">
+      {/* 에러 상태 */}
+      {error && !loading && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-[var(--instagram-text-secondary)] mb-4">{error}</p>
+          <button
+            onClick={() => loadPosts(0, true)}
+            className="px-4 py-2 bg-[var(--instagram-blue)] text-white rounded-lg hover:opacity-90 transition-opacity"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
+      {/* 게시물이 없을 때 */}
+      {!loading && !error && posts.length === 0 && !hasMore && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-24 h-24 mb-4 rounded-full border-2 border-[var(--instagram-text-secondary)] flex items-center justify-center">
+            <svg className="w-12 h-12 text-[var(--instagram-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-[var(--instagram-text-primary)] mb-2">
+            게시물이 없습니다
+          </h3>
+          <p className="text-[var(--instagram-text-secondary)] text-sm">
+            첫 번째 게시물을 공유해보세요!
+          </p>
+        </div>
+      )}
+
       {/* 게시물 목록 */}
       {postCards}
 
@@ -286,7 +317,7 @@ export default function PostFeed({
       )}
 
       {/* 무한 스크롤 감지 요소 */}
-      {hasMore && !loading && (
+      {hasMore && !loading && posts.length > 0 && (
         <div ref={sentinelRef} className="h-4" aria-hidden="true" />
       )}
 

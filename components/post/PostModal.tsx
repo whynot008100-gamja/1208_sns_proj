@@ -24,6 +24,7 @@ import Link from "next/link";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Heart,
@@ -290,6 +291,7 @@ function PostModal({
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] p-0 gap-0">
+          <DialogTitle className="sr-only">게시물 로딩 중</DialogTitle>
           <div className="flex items-center justify-center h-[400px]">
             <div className="text-[var(--instagram-text-secondary)]">
               게시물을 불러오는 중...
@@ -305,6 +307,7 @@ function PostModal({
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] p-0 gap-0">
+          <DialogTitle className="sr-only">게시물 오류</DialogTitle>
           <div className="flex flex-col items-center justify-center h-[400px] p-6">
             <p className="text-[var(--instagram-text-secondary)] mb-4">
               {error || "게시물을 찾을 수 없습니다."}
@@ -647,6 +650,9 @@ function PostModal({
       {/* Desktop: Dialog 모달 */}
       <Dialog open={open && typeof window !== "undefined" && window.innerWidth >= 768} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] p-0 gap-0 overflow-hidden">
+          <DialogTitle className="sr-only">
+            {user?.name ? `${user.name}의 게시물` : "게시물 상세"}
+          </DialogTitle>
           {/* 닫기 버튼 (Desktop) */}
           <button
             onClick={handleClose}
