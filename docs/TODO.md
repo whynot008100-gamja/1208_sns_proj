@@ -99,20 +99,20 @@
 
 ## 5. 게시물 작성
 
-- [ ] `components/post/CreatePostModal.tsx`
-  - [ ] Dialog 컴포넌트 사용
-  - [ ] 이미지 미리보기 UI
-  - [ ] 텍스트 입력 필드 (최대 2,200자)
-  - [ ] 파일 선택 버튼
-  - [ ] 업로드 버튼
-- [ ] `app/api/posts/route.ts`
-  - [ ] POST: 게시물 생성
-  - [ ] 이미지 파일 검증 (최대 5MB)
-  - [ ] Supabase Storage 업로드
-  - [ ] posts 테이블에 데이터 저장
-  - [ ] 인증 검증 (Clerk)
-- [ ] Sidebar "만들기" 버튼 연결
-  - [ ] CreatePostModal 열기
+- [x] `components/post/CreatePostModal.tsx`
+  - [x] Dialog 컴포넌트 사용
+  - [x] 이미지 미리보기 UI
+  - [x] 텍스트 입력 필드 (최대 2,200자)
+  - [x] 파일 선택 버튼
+  - [x] 업로드 버튼
+- [x] `app/api/posts/route.ts`
+  - [x] POST: 게시물 생성
+  - [x] 이미지 파일 검증 (최대 5MB)
+  - [x] Supabase Storage 업로드
+  - [x] posts 테이블에 데이터 저장
+  - [x] 인증 검증 (Clerk)
+- [x] Sidebar "만들기" 버튼 연결
+  - [x] CreatePostModal 열기
 
 ## 6. 댓글 기능
 
