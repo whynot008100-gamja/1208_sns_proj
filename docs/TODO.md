@@ -85,17 +85,17 @@
 
 ## 4. 좋아요 기능
 
-- [ ] `app/api/likes/route.ts`
-  - [ ] POST: 좋아요 추가
-  - [ ] DELETE: 좋아요 제거
-  - [ ] 인증 검증 (Clerk)
-- [ ] `components/post/LikeButton.tsx`
-  - [ ] 빈 하트 ↔ 빨간 하트 상태 관리
-  - [ ] 클릭 애니메이션 (scale 1.3 → 1)
-  - [ ] 더블탭 좋아요 (모바일, 큰 하트 fade in/out)
-- [ ] PostCard에 LikeButton 통합
-  - [ ] 좋아요 상태 표시
-  - [ ] 좋아요 수 실시간 업데이트
+- [x] `app/api/likes/route.ts`
+  - [x] POST: 좋아요 추가
+  - [x] DELETE: 좋아요 제거
+  - [x] 인증 검증 (Clerk)
+- [x] `components/post/LikeButton.tsx`
+  - [x] 빈 하트 ↔ 빨간 하트 상태 관리
+  - [x] 클릭 애니메이션 (scale 1.3 → 1)
+  - [x] 더블탭 좋아요 (모바일, 큰 하트 fade in/out)
+- [x] PostCard에 LikeButton 통합
+  - [x] 좋아요 상태 표시
+  - [x] 좋아요 수 실시간 업데이트
 
 ## 5. 게시물 작성
 

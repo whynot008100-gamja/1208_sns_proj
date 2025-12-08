@@ -94,6 +94,33 @@ function PostCard({
     fetchSupabaseUserId();
   }, [clerkUser?.id, supabaseUserId, supabase]);
 
+  // 좋아요 상태 확인 (supabaseUserId가 있을 때)
+  useEffect(() => {
+    if (!supabaseUserId) return;
+
+    const checkLikeStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("likes")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", supabaseUserId)
+          .single();
+
+        if (!error && data) {
+          setIsLiked(true);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (err) {
+        // 좋아요가 없는 경우 (에러 코드 406 또는 PGRST116)
+        setIsLiked(false);
+      }
+    };
+
+    checkLikeStatus();
+  }, [supabaseUserId, post.id, supabase]);
+
   // 댓글 조회 함수
   const loadComments = useCallback(async () => {
     if (loadingComments) return;
@@ -263,12 +290,36 @@ function PostCard({
           sizes="(max-width: 768px) 100vw, 630px"
           priority={false}
           loading="lazy"
-          onDoubleClick={(e) => {
+          onDoubleClick={async (e) => {
             e.stopPropagation(); // 모달 열기 방지
             // 더블탭 좋아요
             if (!isLiked) {
-              setIsLiked(true);
-              onLike?.(post.id);
+              setIsLiked(true); // 낙관적 업데이트
+              
+              try {
+                const response = await fetch("/api/likes", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ postId: post.id }),
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  // 409 (이미 좋아요를 누른 경우)는 무시
+                  if (response.status !== 409) {
+                    throw new Error(errorData.error || "좋아요 추가에 실패했습니다.");
+                  }
+                }
+
+                // 성공 시 콜백 호출 (좋아요 수 업데이트용)
+                onLike?.(post.id);
+              } catch (err) {
+                // 에러 발생 시 상태 롤백
+                setIsLiked(false);
+                console.error("Double tap like error:", err);
+              }
             }
             // 큰 하트 애니메이션 표시
             setShowDoubleTapHeart(true);
@@ -302,11 +353,57 @@ function PostCard({
                 ? "text-[var(--instagram-like)]"
                 : "text-[var(--instagram-text-primary)]"
             )}
-            onClick={() => {
+            onClick={async () => {
               setIsAnimating(true);
-              setIsLiked(!isLiked);
-              onLike?.(post.id);
-              setTimeout(() => setIsAnimating(false), 150);
+              const newLikedState = !isLiked;
+              setIsLiked(newLikedState); // 낙관적 업데이트
+
+              try {
+                if (newLikedState) {
+                  // 좋아요 추가
+                  const response = await fetch("/api/likes", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ postId: post.id }),
+                  });
+
+                  if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    // 409 (이미 좋아요를 누른 경우)는 무시
+                    if (response.status !== 409) {
+                      throw new Error(errorData.error || "좋아요 추가에 실패했습니다.");
+                    }
+                  }
+                } else {
+                  // 좋아요 제거
+                  const response = await fetch(`/api/likes?postId=${post.id}`, {
+                    method: "DELETE",
+                  });
+
+                  if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || "좋아요 제거에 실패했습니다.");
+                  }
+                }
+
+                // 성공 시 콜백 호출 (좋아요 수 업데이트용)
+                onLike?.(post.id);
+              } catch (err) {
+                // 에러 발생 시 상태 롤백
+                setIsLiked(!newLikedState);
+                console.error("Like error:", err);
+                let errorMessage = "좋아요 처리에 실패했습니다.";
+                if (err instanceof TypeError && err.message === "Failed to fetch") {
+                  errorMessage = "인터넷 연결을 확인해주세요.";
+                } else if (err instanceof Error) {
+                  errorMessage = err.message;
+                }
+                alert(errorMessage);
+              } finally {
+                setTimeout(() => setIsAnimating(false), 150);
+              }
             }}
             aria-label={isLiked ? "좋아요 취소" : "좋아요"}
           >

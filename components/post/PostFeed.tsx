@@ -159,9 +159,21 @@ export default function PostFeed({
     };
   }, [hasMore, loading, offset, loadPosts]);
 
-  // 좋아요 핸들러
+  // 좋아요 핸들러 (좋아요 수 업데이트)
+  // PostCard에서 이미 API를 호출하고 상태를 업데이트했으므로,
+  // 여기서는 좋아요 수만 낙관적으로 업데이트
   const handleLike = useCallback((postId: string) => {
-    // TODO: 좋아요 API 호출 (1차 제외 - UI만)
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          // 좋아요 수를 1 증가 (낙관적 업데이트)
+          // 실제로는 PostCard의 isLiked 상태에 따라 증가/감소가 결정되지만,
+          // PostCard에서 이미 상태를 토글했으므로 여기서는 증가로 가정
+          return { ...p, likes_count: p.likes_count + 1 };
+        }
+        return p;
+      })
+    );
   }, []);
 
   // 댓글 핸들러
