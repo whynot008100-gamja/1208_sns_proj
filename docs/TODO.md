@@ -168,19 +168,19 @@
 
 ## 9. 팔로우 기능
 
-- [ ] `app/api/follows/route.ts`
-  - [ ] POST: 팔로우 추가
-  - [ ] DELETE: 팔로우 제거
-  - [ ] 인증 검증 (Clerk)
-  - [ ] 자기 자신 팔로우 방지
-- [ ] `components/profile/FollowButton.tsx`
-  - [ ] "팔로우" 버튼 (파란색, 미팔로우 상태)
-  - [ ] "팔로잉" 버튼 (회색, 팔로우 중 상태)
-  - [ ] Hover 시 "언팔로우" (빨간 테두리)
-  - [ ] 클릭 시 즉시 API 호출 및 UI 업데이트
-- [ ] ProfileHeader에 FollowButton 통합
-  - [ ] 팔로우 상태 관리
-  - [ ] 통계 실시간 업데이트
+- [x] `app/api/follows/route.ts`
+  - [x] POST: 팔로우 추가
+  - [x] DELETE: 팔로우 제거
+  - [x] 인증 검증 (Clerk)
+  - [x] 자기 자신 팔로우 방지
+- [x] `components/profile/FollowButton.tsx`
+  - [x] "팔로우" 버튼 (파란색, 미팔로우 상태)
+  - [x] "팔로잉" 버튼 (회색, 팔로우 중 상태)
+  - [x] Hover 시 "언팔로우" (빨간 테두리)
+  - [x] 클릭 시 즉시 API 호출 및 UI 업데이트
+- [x] ProfileHeader에 FollowButton 통합
+  - [x] 팔로우 상태 관리
+  - [x] 통계 실시간 업데이트
 
 ## 10. 게시물 삭제
 

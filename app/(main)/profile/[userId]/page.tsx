@@ -44,15 +44,24 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       .single();
 
     // 사용자가 없고 본인 프로필인 경우 자동 동기화 시도
-    if ((userError || !user) && isOwnProfile && currentClerkUserId) {
+    // PGRST116은 "no rows found" 오류 코드
+    const isUserNotFound = userError?.code === "PGRST116" || (!user && userError);
+    
+    if (isUserNotFound && isOwnProfile && currentClerkUserId) {
       try {
-        console.log("User not found, attempting to sync user:", clerkUserId);
+        console.log("User not found, attempting to sync user:", {
+          clerkUserId,
+          errorCode: userError?.code,
+          errorMessage: userError?.message,
+        });
         
         // Clerk에서 사용자 정보 가져오기
         const client = await clerkClient();
         const clerkUser = await client.users.getUser(clerkUserId);
 
-        if (clerkUser) {
+        if (!clerkUser) {
+          console.error("Clerk user not found:", clerkUserId);
+        } else {
           // Supabase에 사용자 정보 동기화
           const serviceRoleClient = getServiceRoleClient();
           const { data: syncedUser, error: syncError } = await serviceRoleClient
@@ -73,17 +82,32 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             .select()
             .single();
 
-          if (!syncError && syncedUser) {
-            user = syncedUser;
+          if (syncError) {
+            console.error("Failed to sync user:", {
+              code: syncError.code,
+              message: syncError.message,
+              details: syncError.details,
+              hint: syncError.hint,
+            });
+          } else if (syncedUser) {
+            console.log("User synced successfully:", {
+              id: syncedUser.id,
+              clerk_id: syncedUser.clerk_id,
+              name: syncedUser.name,
+            });
+            // 동기화된 데이터를 바로 사용
+            user = {
+              id: syncedUser.id,
+              clerk_id: syncedUser.clerk_id,
+              name: syncedUser.name,
+              created_at: syncedUser.created_at,
+            };
             userError = null;
-            console.log("User synced successfully:", syncedUser.id);
-          } else {
-            console.error("Failed to sync user:", syncError);
           }
         }
       } catch (syncError) {
         console.error("Error syncing user:", syncError);
-        // 동기화 실패해도 계속 진행 (다시 조회 시도)
+        // 동기화 실패해도 계속 진행
       }
     }
 
@@ -92,8 +116,22 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       console.error("User not found after sync attempt:", {
         clerkUserId,
         isOwnProfile,
-        userError,
+        currentClerkUserId,
+        userError: userError ? {
+          message: userError.message,
+          code: userError.code,
+          details: userError.details,
+          hint: userError.hint,
+        } : null,
+        hasUser: !!user,
+        attemptedSync: isUserNotFound && isOwnProfile && currentClerkUserId,
       });
+      
+      // 본인 프로필이고 동기화를 시도했는데도 실패한 경우
+      if (isOwnProfile && currentClerkUserId) {
+        console.error("Failed to sync own profile. User may need to log out and log back in.");
+      }
+      
       notFound();
     }
 
