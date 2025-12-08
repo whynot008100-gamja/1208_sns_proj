@@ -10,7 +10,8 @@
 
 "use client";
 
-import { useState, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
+import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -21,8 +22,11 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
-import type { PostWithStats, User } from "@/lib/types";
+import type { PostWithStats, User, CommentWithUser } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useClerkSupabaseClient } from "@/utils/supabase/clerk-client";
+import CommentList from "@/components/comment/CommentList";
+import CommentForm from "@/components/comment/CommentForm";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -39,8 +43,13 @@ function PostCard({
   onLike,
   onComment,
 }: PostCardProps) {
+  const { user: clerkUser } = useUser();
+  const supabase = useClerkSupabaseClient();
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [isLiked, setIsLiked] = useState(false); // 1차 제외 - UI만
+  const [comments, setComments] = useState<CommentWithUser[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>(currentUserId);
 
   // 캡션 2줄 초과 여부 확인 (간단한 구현)
   const captionLines = post.caption?.split("\n") || [];
@@ -51,7 +60,119 @@ function PostCard({
     ? post.caption?.substring(0, 100) + "..."
     : post.caption;
 
-  // 댓글 미리보기 (최신 2개) - 1차 제외, UI만 표시
+  // Clerk user ID를 Supabase user_id로 변환
+  useEffect(() => {
+    if (supabaseUserId || !clerkUser?.id) return;
+
+    const fetchSupabaseUserId = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("id")
+          .eq("clerk_id", clerkUser.id)
+          .single();
+
+        if (!error && data) {
+          setSupabaseUserId(data.id);
+        }
+      } catch (err) {
+        console.error("Failed to get Supabase user ID:", err);
+      }
+    };
+
+    fetchSupabaseUserId();
+  }, [clerkUser?.id, supabaseUserId, supabase]);
+
+  // 댓글 조회 함수
+  const loadComments = useCallback(async () => {
+    if (loadingComments) return;
+
+    setLoadingComments(true);
+    try {
+      const response = await fetch(`/api/comments?postId=${post.id}&limit=2`);
+      if (!response.ok) {
+        throw new Error("댓글을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setComments(data.comments || []);
+    } catch (err) {
+      console.error("Load comments error:", err);
+    } finally {
+      setLoadingComments(false);
+    }
+  }, [post.id, loadingComments]);
+
+  // 댓글이 있고 아직 로드하지 않았을 때만 로드 (lazy loading)
+  useEffect(() => {
+    if (post.comments_count > 0 && comments.length === 0 && !loadingComments) {
+      loadComments();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post.comments_count]);
+
+  // 댓글 작성 핸들러
+  const handleCommentSubmit = useCallback(
+    async (content: string) => {
+      try {
+        const response = await fetch("/api/comments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            content,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "댓글 작성에 실패했습니다.");
+        }
+
+        const newComment: CommentWithUser = await response.json();
+        // 댓글 목록에 추가 (최신 댓글이므로 맨 뒤에 추가)
+        setComments((prev) => {
+          const updated = [...prev, newComment];
+          // 최신 2개만 유지
+          return updated.slice(-2);
+        });
+      } catch (err) {
+        console.error("Comment submit error:", err);
+        throw err;
+      }
+    },
+    [post.id, loadComments]
+  );
+
+  // 댓글 삭제 핸들러
+  const handleCommentDelete = useCallback(
+    async (commentId: string) => {
+      try {
+        const response = await fetch(`/api/comments?commentId=${commentId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "댓글 삭제에 실패했습니다.");
+        }
+
+        // 댓글 목록에서 제거
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+        // 댓글이 부족하면 다시 로드
+        if (comments.length <= 2) {
+          loadComments();
+        }
+      } catch (err) {
+        console.error("Comment delete error:", err);
+        alert(err instanceof Error ? err.message : "댓글 삭제에 실패했습니다.");
+      }
+    },
+    [loadComments]
+  );
+
+  // 댓글 미리보기 표시 여부
   const showCommentsPreview = post.comments_count > 2;
 
   return (
@@ -203,6 +324,20 @@ function PostCard({
           </div>
         )}
 
+        {/* 댓글 목록 */}
+        {comments.length > 0 && (
+          <div className="space-y-1">
+            <CommentList
+              comments={comments}
+              postId={post.id}
+              currentUserId={supabaseUserId}
+              limit={2}
+              showAll={false}
+              onDelete={handleCommentDelete}
+            />
+          </div>
+        )}
+
         {/* 댓글 미리보기 */}
         {showCommentsPreview && (
           <button
@@ -215,21 +350,15 @@ function PostCard({
             댓글 {post.comments_count}개 모두 보기
           </button>
         )}
-
-        {/* 댓글 미리보기 (최신 2개) - 1차 제외, UI만 표시 */}
-        {post.comments_count > 0 && post.comments_count <= 2 && (
-          <div className="text-sm text-[var(--instagram-text-primary)] space-y-1">
-            <div>
-              <span className="font-semibold">username2</span>{" "}
-              <span>멋진 사진이네요!</span>
-            </div>
-            <div>
-              <span className="font-semibold">username3</span>{" "}
-              <span>좋아요 👍</span>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* 댓글 작성 폼 */}
+      <CommentForm
+        postId={post.id}
+        onSubmit={handleCommentSubmit}
+        placeholder="댓글 달기..."
+        autoFocus={false}
+      />
     </article>
   );
 }

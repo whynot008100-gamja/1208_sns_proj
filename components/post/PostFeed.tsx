@@ -11,6 +11,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useUser } from "@clerk/nextjs";
 import PostCard from "./PostCard";
 import PostCardSkeleton from "./PostCardSkeleton";
 import type { PostWithStats, User } from "@/lib/types";
