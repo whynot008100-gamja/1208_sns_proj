@@ -347,7 +347,7 @@ function PostCard({
           {/* 좋아요 버튼 */}
           <button
             className={cn(
-              "transition-transform duration-150",
+              "transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded",
               isAnimating && "scale-[1.3]",
               isLiked
                 ? "text-[var(--instagram-like)]"
@@ -406,42 +406,47 @@ function PostCard({
               }
             }}
             aria-label={isLiked ? "좋아요 취소" : "좋아요"}
+            type="button"
           >
             <Heart
               className={cn("w-6 h-6 transition-all duration-150", isLiked && "fill-current")}
               strokeWidth={isLiked ? 0 : 2}
+              aria-hidden="true"
             />
           </button>
 
           {/* 댓글 버튼 */}
           <button
-            className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+            className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
             onClick={() => {
               onImageClick?.(post.id); // 댓글 버튼 클릭 시 모달 열기
               onComment?.(post.id);
             }}
             aria-label="댓글"
+            type="button"
           >
-            <MessageCircle className="w-6 h-6" />
+            <MessageCircle className="w-6 h-6" aria-hidden="true" />
           </button>
 
           {/* 공유 버튼 (UI만, 1차 제외) */}
           <button
-            className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+            className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
             aria-label="공유"
             disabled
+            type="button"
           >
-            <Send className="w-6 h-6" />
+            <Send className="w-6 h-6" aria-hidden="true" />
           </button>
         </div>
 
         {/* 북마크 버튼 (UI만, 1차 제외) */}
         <button
-          className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+          className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
           aria-label="저장"
           disabled
+          type="button"
         >
-          <Bookmark className="w-6 h-6" />
+          <Bookmark className="w-6 h-6" aria-hidden="true" />
         </button>
       </div>
 

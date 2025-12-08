@@ -76,11 +76,12 @@ export default function BottomNav() {
             return (
               <button
                 key={item.label}
-                className="flex flex-col items-center justify-center gap-1 text-[var(--instagram-text-primary)]"
+                className="flex flex-col items-center justify-center gap-1 text-[var(--instagram-text-primary)] focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
                 onClick={() => setIsCreateModalOpen(true)}
                 aria-label={item.label}
+                type="button"
               >
-                <Icon className="w-6 h-6" />
+                <Icon className="w-6 h-6" aria-hidden="true" />
               </button>
             );
           }
@@ -89,8 +90,9 @@ export default function BottomNav() {
             <Link
               key={item.label}
               href={item.href}
-              className="flex flex-col items-center justify-center gap-1"
+              className="flex flex-col items-center justify-center gap-1 focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
               aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
             >
               <Icon
                 className={cn(
@@ -99,6 +101,7 @@ export default function BottomNav() {
                     ? "text-[var(--instagram-text-primary)] stroke-[2.5px]"
                     : "text-[var(--instagram-text-secondary)]"
                 )}
+                aria-hidden="true"
               />
             </Link>
           );

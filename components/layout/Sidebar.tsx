@@ -77,23 +77,24 @@ export default function Sidebar() {
 
             // 만들기 버튼은 클릭 이벤트만
             if (item.href === "#") {
-              return (
-                <button
-                  key={item.label}
-                  className={cn(
-                    "flex items-center gap-4 px-3 py-3 rounded-lg transition-colors",
-                    "hover:bg-gray-50",
-                    "text-[var(--instagram-text-primary)]"
-                  )}
-                  onClick={() => setIsCreateModalOpen(true)}
-                  aria-label={item.label}
-                >
-                  <Icon className="w-6 h-6" />
-                  <span className="hidden lg:inline text-base font-medium">
-                    {item.label}
-                  </span>
-                </button>
-              );
+            return (
+              <button
+                key={item.label}
+                className={cn(
+                  "flex items-center gap-4 px-3 py-3 rounded-lg transition-colors",
+                  "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2",
+                  "text-[var(--instagram-text-primary)]"
+                )}
+                onClick={() => setIsCreateModalOpen(true)}
+                aria-label={item.label}
+                type="button"
+              >
+                <Icon className="w-6 h-6" aria-hidden="true" />
+                <span className="hidden lg:inline text-base font-medium">
+                  {item.label}
+                </span>
+              </button>
+            );
             }
 
             return (
@@ -115,6 +116,7 @@ export default function Sidebar() {
                     "w-6 h-6",
                     isActive && "stroke-[2.5px]"
                   )}
+                  aria-hidden="true"
                 />
                 <span className="hidden lg:inline text-base">
                   {item.label}

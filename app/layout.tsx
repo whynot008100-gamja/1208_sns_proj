@@ -8,16 +8,6 @@
  * @see https://clerk.com/docs/guides/customizing-clerk/localization
  */
 
-/**
- * @file app/layout.tsx
- * @description Root Layout with Clerk Provider
- *
- * Clerk 한국어 로컬라이제이션을 적용한 루트 레이아웃입니다.
- * Tailwind CSS v4 호환성을 위해 appearance prop을 사용합니다.
- *
- * @see https://clerk.com/docs/guides/customizing-clerk/localization
- */
-
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -37,8 +27,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SaaS 템플릿",
-  description: "Next.js + Clerk + Supabase 보일러플레이트",
+  title: "Mini Instagram - 바이브 코딩 SNS",
+  description: "Instagram 스타일 SNS 애플리케이션",
+  keywords: ["Instagram", "SNS", "소셜 네트워크", "사진 공유"],
+  authors: [{ name: "바이브 코딩" }],
+  openGraph: {
+    title: "Mini Instagram",
+    description: "Instagram 스타일 SNS 애플리케이션",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Mini Instagram",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mini Instagram",
+    description: "Instagram 스타일 SNS 애플리케이션",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
