@@ -19,7 +19,6 @@ import {
   MessageCircle,
   Send,
   Bookmark,
-  MoreHorizontal,
 } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import type { PostWithStats, User, CommentWithUser } from "@/lib/types";
@@ -27,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { useClerkSupabaseClient } from "@/utils/supabase/clerk-client";
 import CommentList from "@/components/comment/CommentList";
 import CommentForm from "@/components/comment/CommentForm";
+import PostMenu from "./PostMenu";
+import DeletePostDialog from "./DeletePostDialog";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -35,6 +36,7 @@ interface PostCardProps {
   onLike?: (postId: string) => void;
   onComment?: (postId: string) => void;
   onImageClick?: (postId: string) => void; // 이미지 클릭 시 모달 열기
+  onDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
 }
 
 function PostCard({
@@ -44,6 +46,7 @@ function PostCard({
   onLike,
   onComment,
   onImageClick,
+  onDelete,
 }: PostCardProps) {
   const { user: clerkUser } = useUser();
   const supabase = useClerkSupabaseClient();
@@ -52,6 +55,10 @@ function PostCard({
   const [comments, setComments] = useState<CommentWithUser[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>(currentUserId);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // 본인 게시물 여부 확인
+  const isOwner = supabaseUserId === post.user_id;
 
   // 캡션 2줄 초과 여부 확인 (간단한 구현)
   const captionLines = post.caption?.split("\n") || [];
@@ -210,16 +217,10 @@ function PostCard({
         </div>
 
         {/* ⋯ 메뉴: 우측 정렬 */}
-        <button
-          className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
-          aria-label="더보기"
-          onClick={() => {
-            // TODO: 드롭다운 메뉴 (1차 제외)
-            console.log("메뉴 열기");
-          }}
-        >
-          <MoreHorizontal className="w-6 h-6" />
-        </button>
+        <PostMenu
+          isOwner={isOwner}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+        />
       </header>
 
       {/* 이미지 영역 (1:1 정사각형) */}
@@ -365,6 +366,16 @@ function PostCard({
         onSubmit={handleCommentSubmit}
         placeholder="댓글 달기..."
         autoFocus={false}
+      />
+
+      {/* 삭제 확인 다이얼로그 */}
+      <DeletePostDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        postId={post.id}
+        onDelete={() => {
+          onDelete?.(post.id);
+        }}
       />
     </article>
   );

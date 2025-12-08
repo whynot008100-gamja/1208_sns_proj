@@ -222,6 +222,20 @@ export default function PostFeed({
     return users.get(selectedPost.user_id);
   }, [selectedPost, users]);
 
+  // 게시물 삭제 핸들러
+  const handlePostDelete = useCallback(
+    (postId: string) => {
+      // 피드에서 게시물 제거
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      // 모달이 열려있으면 닫기
+      if (selectedPostId === postId) {
+        setIsModalOpen(false);
+        setSelectedPostId(null);
+      }
+    },
+    [selectedPostId]
+  );
+
   // 에러 상태
   if (error && posts.length === 0) {
     return (
@@ -265,10 +279,11 @@ export default function PostFeed({
           onLike={handleLike}
           onComment={handleComment}
           onImageClick={handleImageClick}
+          onDelete={handlePostDelete}
         />
       );
     });
-  }, [posts, users, handleLike, handleComment, handleImageClick]);
+  }, [posts, users, handleLike, handleComment, handleImageClick, handlePostDelete]);
 
   return (
     <div className="w-full">
@@ -307,6 +322,7 @@ export default function PostFeed({
           onNext={navigationInfo.hasNext ? handleNext : undefined}
           hasPrevious={navigationInfo.hasPrevious}
           hasNext={navigationInfo.hasNext}
+          onPostDelete={handlePostDelete}
         />
       )}
     </div>

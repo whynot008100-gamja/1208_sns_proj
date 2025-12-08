@@ -30,7 +30,6 @@ import {
   MessageCircle,
   Send,
   Bookmark,
-  MoreHorizontal,
   X,
   ChevronLeft,
   ChevronRight,
@@ -42,6 +41,8 @@ import type { PostWithStats, User, CommentWithUser } from "@/lib/types";
 import { useClerkSupabaseClient } from "@/utils/supabase/clerk-client";
 import CommentList from "@/components/comment/CommentList";
 import CommentForm from "@/components/comment/CommentForm";
+import PostMenu from "./PostMenu";
+import DeletePostDialog from "./DeletePostDialog";
 
 interface PostModalProps {
   postId: string;
@@ -53,6 +54,7 @@ interface PostModalProps {
   onNext?: () => void; // 다음 게시물로 이동
   hasPrevious?: boolean; // 이전 게시물 존재 여부
   hasNext?: boolean; // 다음 게시물 존재 여부
+  onPostDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
 }
 
 function PostModal({
@@ -65,6 +67,7 @@ function PostModal({
   onNext,
   hasPrevious = false,
   hasNext = false,
+  onPostDelete,
 }: PostModalProps) {
   const { user: clerkUser } = useUser();
   const supabase = useClerkSupabaseClient();
@@ -77,6 +80,10 @@ function PostModal({
   const [isLiked, setIsLiked] = useState(false);
   const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>();
   const commentAreaRef = useRef<HTMLDivElement>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // 본인 게시물 여부 확인
+  const isOwner = supabaseUserId === post?.user_id;
 
   // Clerk user ID를 Supabase user_id로 변환
   useEffect(() => {
@@ -337,12 +344,10 @@ function PostModal({
               {user?.name || "Unknown"}
             </Link>
           </div>
-          <button
-            className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
-            aria-label="더보기"
-          >
-            <MoreHorizontal className="w-6 h-6" />
-          </button>
+          <PostMenu
+            isOwner={isOwner || false}
+            onDelete={() => setIsDeleteDialogOpen(true)}
+          />
         </div>
 
         {/* 댓글 목록 (스크롤 가능) */}
@@ -497,12 +502,10 @@ function PostModal({
               {formatRelativeTime(post.created_at)}
             </span>
           </div>
-          <button
-            className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
-            aria-label="더보기"
-          >
-            <MoreHorizontal className="w-6 h-6" />
-          </button>
+          <PostMenu
+            isOwner={isOwner || false}
+            onDelete={() => setIsDeleteDialogOpen(true)}
+          />
         </div>
 
         {/* 이미지 */}
@@ -656,6 +659,19 @@ function PostModal({
         <div className="fixed inset-0 z-50 bg-[var(--instagram-card-background)]">
           {mobileContent}
         </div>
+      )}
+
+      {/* 삭제 확인 다이얼로그 */}
+      {post && (
+        <DeletePostDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          postId={post.id}
+          onDelete={() => {
+            onPostDelete?.(post.id);
+            onOpenChange(false); // 모달 닫기
+          }}
+        />
       )}
     </>
   );
