@@ -16,7 +16,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
@@ -31,7 +31,7 @@ interface CommentFormProps {
 
 const MAX_COMMENT_LENGTH = 1000;
 
-export default function CommentForm({
+function CommentForm({
   postId,
   onSubmit,
   placeholder = "댓글 달기...",
@@ -162,4 +162,6 @@ export default function CommentForm({
     </div>
   );
 }
+
+export default memo(CommentForm);
 

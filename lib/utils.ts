@@ -128,3 +128,43 @@ export function validateImageFile(
 
   return { valid: true };
 }
+
+/**
+ * 에러를 사용자 친화적인 메시지로 변환
+ * 
+ * @param error - 에러 객체 또는 문자열
+ * @param defaultMessage - 기본 에러 메시지
+ * @returns 사용자 친화적인 에러 메시지
+ * 
+ * @example
+ * ```ts
+ * try {
+ *   await fetch('/api/posts');
+ * } catch (error) {
+ *   const message = getErrorMessage(error, "게시물을 불러오는데 실패했습니다.");
+ *   alert(message);
+ * }
+ * ```
+ */
+export function getErrorMessage(
+  error: unknown,
+  defaultMessage: string = "작업에 실패했습니다."
+): string {
+  // 네트워크 에러
+  if (error instanceof TypeError && error.message === "Failed to fetch") {
+    return "인터넷 연결을 확인해주세요.";
+  }
+
+  // Error 객체
+  if (error instanceof Error) {
+    return error.message || defaultMessage;
+  }
+
+  // 문자열
+  if (typeof error === "string") {
+    return error;
+  }
+
+  // 기타
+  return defaultMessage;
+}

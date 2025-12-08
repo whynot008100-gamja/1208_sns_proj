@@ -12,7 +12,7 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +23,7 @@ interface FollowButtonProps {
   className?: string;
 }
 
-export default function FollowButton({
+function FollowButton({
   followingId,
   initialIsFollowing,
   onFollowChange,
@@ -141,4 +141,6 @@ export default function FollowButton({
     </Button>
   );
 }
+
+export default memo(FollowButton);
 

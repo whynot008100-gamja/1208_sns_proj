@@ -13,7 +13,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import Image from "next/image";
 import { Heart, MessageCircle } from "lucide-react";
 import type { PostWithStats } from "@/lib/types";
@@ -31,7 +31,7 @@ interface PostsResponse {
   hasMore: boolean;
 }
 
-export default function PostGrid({ userId, onPostClick }: PostGridProps) {
+function PostGrid({ userId, onPostClick }: PostGridProps) {
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -190,4 +190,6 @@ export default function PostGrid({ userId, onPostClick }: PostGridProps) {
     </>
   );
 }
+
+export default memo(PostGrid);
 
