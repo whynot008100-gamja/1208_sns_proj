@@ -44,21 +44,21 @@
 
 ## 2. 레이아웃 구조
 
-- [ ] `app/(main)/layout.tsx` 생성
-  - [ ] Sidebar 통합
-  - [ ] 반응형 레이아웃 (Desktop/Tablet/Mobile)
-- [ ] `components/layout/Sidebar.tsx`
-  - [ ] Desktop: 244px 너비, 아이콘 + 텍스트
-  - [ ] Tablet: 72px 너비, 아이콘만
-  - [ ] Mobile: 숨김
-  - [ ] 메뉴 항목: 홈, 검색, 만들기, 프로필
-  - [ ] Hover 효과 및 Active 상태 스타일
-- [ ] `components/layout/Header.tsx`
-  - [ ] Mobile 전용 (60px 높이)
-  - [ ] 로고 + 알림/DM/프로필 아이콘
-- [ ] `components/layout/BottomNav.tsx`
-  - [ ] Mobile 전용 (50px 높이)
-  - [ ] 5개 아이콘: 홈, 검색, 만들기, 좋아요, 프로필
+- [x] `app/(main)/layout.tsx` 생성
+  - [x] Sidebar 통합
+  - [x] 반응형 레이아웃 (Desktop/Tablet/Mobile)
+- [x] `components/layout/Sidebar.tsx`
+  - [x] Desktop: 244px 너비, 아이콘 + 텍스트
+  - [x] Tablet: 72px 너비, 아이콘만
+  - [x] Mobile: 숨김
+  - [x] 메뉴 항목: 홈, 검색, 만들기, 프로필
+  - [x] Hover 효과 및 Active 상태 스타일
+- [x] `components/layout/Header.tsx`
+  - [x] Mobile 전용 (60px 높이)
+  - [x] 로고 + 알림/DM/프로필 아이콘
+- [x] `components/layout/BottomNav.tsx`
+  - [x] Mobile 전용 (50px 높이)
+  - [x] 5개 아이콘: 홈, 검색, 만들기, 좋아요, 프로필
 
 ## 3. 홈 피드 페이지
 
