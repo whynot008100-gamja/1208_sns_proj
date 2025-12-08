@@ -256,7 +256,7 @@ export default function PostFeed({
 
   // 게시물 목록 메모이제이션 (조건부 return 전에 호출)
   const postCards = useMemo(() => {
-    return posts.map((post) => {
+    return posts.map((post, index) => {
       const user = users.get(post.user_id);
       return (
         <PostCard
@@ -267,6 +267,7 @@ export default function PostFeed({
           onComment={handleComment}
           onImageClick={handleImageClick}
           onDelete={handlePostDelete}
+          isPriority={index === 0}
         />
       );
     });

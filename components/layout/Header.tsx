@@ -13,7 +13,8 @@
 
 import Link from "next/link";
 import { Heart, MessageCircle } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, SignedOut, SignedIn, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   return (
@@ -26,32 +27,49 @@ export default function Header() {
 
         {/* 우측: 아이콘들 */}
         <div className="flex items-center gap-4">
-          {/* 알림 (1차 제외, UI만) */}
-          <button
-            className="text-[var(--instagram-text-primary)]"
-            onClick={() => {
-              // TODO: 알림 페이지로 이동 (1차 제외)
-            }}
-            aria-label="알림"
-            disabled
-          >
-            <Heart className="w-6 h-6" />
-          </button>
+          <SignedOut>
+            {/* 로그인하지 않은 경우: 로그인/회원가입 버튼 */}
+            <SignInButton mode="modal">
+              <Button variant="outline" size="sm">
+                로그인
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button size="sm">
+                회원가입
+              </Button>
+            </SignUpButton>
+          </SignedOut>
 
-          {/* DM (1차 제외, UI만) */}
-          <button
-            className="text-[var(--instagram-text-primary)]"
-            onClick={() => {
-              // TODO: DM 페이지로 이동 (1차 제외)
-            }}
-            aria-label="메시지"
-            disabled
-          >
-            <MessageCircle className="w-6 h-6" />
-          </button>
+          <SignedIn>
+            {/* 로그인한 경우: 알림, DM, 프로필 */}
+            {/* 알림 (1차 제외, UI만) */}
+            <button
+              className="text-[var(--instagram-text-primary)]"
+              onClick={() => {
+                // TODO: 알림 페이지로 이동 (1차 제외)
+              }}
+              aria-label="알림"
+              disabled
+            >
+              <Heart className="w-6 h-6" />
+            </button>
 
-          {/* 프로필 */}
-          <UserButton />
+            {/* DM (1차 제외, UI만) */}
+            <button
+              className="text-[var(--instagram-text-primary)]"
+              onClick={() => {
+                // TODO: DM 페이지로 이동 (1차 제외)
+              }}
+              aria-label="메시지"
+              disabled
+            >
+              <MessageCircle className="w-6 h-6" />
+            </button>
+
+            {/* 프로필 */}
+            <UserButton />
+          </SignedIn>
         </div>
       </div>
     </header>

@@ -27,6 +27,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "Mini Instagram - 바이브 코딩 SNS",
   description: "Instagram 스타일 SNS 애플리케이션",
   keywords: ["Instagram", "SNS", "소셜 네트워크", "사진 공유"],

@@ -37,6 +37,7 @@ interface PostCardProps {
   onComment?: (postId: string) => void;
   onImageClick?: (postId: string) => void; // 이미지 클릭 시 모달 열기
   onDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
+  isPriority?: boolean; // LCP 이미지 최적화용
 }
 
 function PostCard({
@@ -47,6 +48,7 @@ function PostCard({
   onComment,
   onImageClick,
   onDelete,
+  isPriority = false,
 }: PostCardProps) {
   const { user: clerkUser } = useUser();
   const supabase = useClerkSupabaseClient();
@@ -288,8 +290,8 @@ function PostCard({
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 630px"
-          priority={false}
-          loading="lazy"
+          priority={isPriority}
+          loading={isPriority ? "eager" : "lazy"}
           onDoubleClick={async (e) => {
             e.stopPropagation(); // 모달 열기 방지
             // 더블탭 좋아요

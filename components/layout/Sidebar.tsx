@@ -15,8 +15,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, PlusSquare, User } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import CreatePostModal from "@/components/post/CreatePostModal";
 
 interface NavItem {
@@ -68,6 +69,24 @@ export default function Sidebar() {
             Instagram
           </Link>
         </div>
+
+        {/* 로그인하지 않은 경우: 로그인/회원가입 버튼 */}
+        <SignedOut>
+          <div className="flex flex-col gap-2 px-3 mb-4">
+            <SignInButton mode="modal">
+              <Button variant="outline" className="w-full">
+                <span className="hidden lg:inline">로그인</span>
+                <span className="lg:hidden">로그인</span>
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button className="w-full">
+                <span className="hidden lg:inline">회원가입</span>
+                <span className="lg:hidden">가입</span>
+              </Button>
+            </SignUpButton>
+          </div>
+        </SignedOut>
 
         {/* 네비게이션 메뉴 */}
         <nav className="flex flex-col gap-1">

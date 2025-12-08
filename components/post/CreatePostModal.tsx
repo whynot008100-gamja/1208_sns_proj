@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -180,6 +181,9 @@ export default function CreatePostModal({
           <DialogTitle className="text-center text-lg font-semibold">
             새 게시물 만들기
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            이미지를 선택하고 캡션을 입력하여 새 게시물을 작성하세요.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col">
