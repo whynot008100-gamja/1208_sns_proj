@@ -511,12 +511,25 @@ function PostCard({
                 });
 
                 if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
+                  // 응답 본문을 텍스트로 먼저 읽기
+                  const responseText = await response.text();
+                  let errorData: any = {};
+                  
+                  try {
+                    errorData = JSON.parse(responseText);
+                  } catch (e) {
+                    // JSON 파싱 실패 시 원본 텍스트 사용
+                    console.error("Failed to parse error response as JSON:", responseText);
+                    errorData = { error: responseText || "알 수 없는 오류가 발생했습니다." };
+                  }
+                  
                   // 409 (이미 저장한 경우)는 무시
                   if (response.status !== 409) {
                     console.error("Save API error:", {
                       status: response.status,
+                      statusText: response.statusText,
                       error: errorData,
+                      rawResponse: responseText,
                     });
                     throw new Error(errorData.error || "저장에 실패했습니다.");
                   }
@@ -528,7 +541,24 @@ function PostCard({
                 });
 
                 if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
+                  // 응답 본문을 텍스트로 먼저 읽기
+                  const responseText = await response.text();
+                  let errorData: any = {};
+                  
+                  try {
+                    errorData = JSON.parse(responseText);
+                  } catch (e) {
+                    // JSON 파싱 실패 시 원본 텍스트 사용
+                    console.error("Failed to parse error response as JSON:", responseText);
+                    errorData = { error: responseText || "알 수 없는 오류가 발생했습니다." };
+                  }
+                  
+                  console.error("Save delete API error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorData,
+                    rawResponse: responseText,
+                  });
                   throw new Error(errorData.error || "저장 취소에 실패했습니다.");
                 }
               }
