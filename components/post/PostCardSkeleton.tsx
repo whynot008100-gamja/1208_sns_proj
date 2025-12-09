@@ -23,8 +23,8 @@ export default function PostCardSkeleton() {
         <div className="w-6 h-6 rounded animate-shimmer" />
       </div>
 
-      {/* 이미지 스켈레톤 (1:1 정사각형) */}
-      <div className="w-full aspect-square animate-shimmer" />
+      {/* 이미지 스켈레톤 */}
+      <div className="w-full h-[400px] animate-shimmer" />
 
       {/* 액션 버튼 스켈레톤 */}
       <div className="flex items-center justify-between px-4 py-3 h-[48px]">

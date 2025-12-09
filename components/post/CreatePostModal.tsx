@@ -219,12 +219,13 @@ export default function CreatePostModal({
           ) : (
             <div className="relative">
               {/* 이미지 미리보기 */}
-              <div className="relative w-full aspect-square bg-black">
+              <div className="relative w-full bg-black flex items-center justify-center min-h-[400px] max-h-[600px]">
                 <Image
                   src={previewUrl}
                   alt="미리보기"
-                  fill
-                  className="object-contain"
+                  width={600}
+                  height={600}
+                  className="w-full h-auto max-h-[600px] object-contain"
                   sizes="(max-width: 768px) 100vw, 600px"
                 />
               </div>

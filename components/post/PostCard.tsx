@@ -316,9 +316,9 @@ function PostCard({
         </div>
       )}
 
-      {/* 이미지 영역 (1:1 정사각형) */}
+      {/* 이미지 영역 (원본 비율 유지) */}
       <div
-        className="relative w-full aspect-square bg-gray-100 cursor-pointer"
+        className="relative w-full bg-gray-100 cursor-pointer flex items-center justify-center"
         onClick={() => onImageClick?.(post.id)}
         role="button"
         tabIndex={0}
@@ -333,8 +333,9 @@ function PostCard({
         <Image
           src={post.image_url}
           alt={post.caption || "게시물 이미지"}
-          fill
-          className="object-cover"
+          width={630}
+          height={630}
+          className="w-full h-auto max-h-[80vh] object-contain"
           sizes="(max-width: 768px) 100vw, 630px"
           priority={isPriority}
           loading={isPriority ? "eager" : "lazy"}

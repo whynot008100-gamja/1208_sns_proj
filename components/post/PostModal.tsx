@@ -825,12 +825,13 @@ function PostModal({
         </div>
 
         {/* 이미지 */}
-        <div className="relative w-full aspect-square bg-black">
+        <div className="relative w-full bg-black flex items-center justify-center">
           <Image
             src={post.image_url}
             alt={post.caption || "게시물 이미지"}
-            fill
-            className="object-cover"
+            width={768}
+            height={768}
+            className="w-full h-auto max-h-[80vh] object-contain"
             sizes="100vw"
             priority
           />
