@@ -57,6 +57,7 @@ interface PostModalProps {
   hasPrevious?: boolean; // 이전 게시물 존재 여부
   hasNext?: boolean; // 다음 게시물 존재 여부
   onPostDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
+  onPostUpdate?: (postId: string, updates: Partial<PostWithStats>) => void; // 게시물 업데이트 콜백
 }
 
 function PostModal({
@@ -70,6 +71,7 @@ function PostModal({
   hasPrevious = false,
   hasNext = false,
   onPostDelete,
+  onPostUpdate,
 }: PostModalProps) {
   const { user: clerkUser } = useUser();
   const supabase = useClerkSupabaseClient();
@@ -113,9 +115,24 @@ function PostModal({
 
   // 게시물 상세 정보 로드
   const loadPost = useCallback(async () => {
+    // initialPost가 있으면 우선 사용 (최신 데이터)
     if (initialPost) {
       setPost(initialPost);
       setLoading(false);
+      // initialPost가 있더라도 사용자 정보는 별도로 로드
+      if (!initialUser) {
+        try {
+          const response = await fetch(`/api/posts/${postId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user) {
+              setUser(data.user);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load user info:", err);
+        }
+      }
       return;
     }
 
@@ -148,7 +165,7 @@ function PostModal({
     } finally {
       setLoading(false);
     }
-  }, [postId, initialPost]);
+  }, [postId, initialPost, initialUser]);
 
   // 댓글 전체 목록 로드
   const loadComments = useCallback(async () => {
@@ -173,10 +190,17 @@ function PostModal({
   // 모달이 열릴 때 데이터 로드
   useEffect(() => {
     if (open) {
+      // initialPost가 변경되면 최신 데이터로 업데이트
+      if (initialPost) {
+        setPost(initialPost);
+      }
+      if (initialUser) {
+        setUser(initialUser);
+      }
       loadPost();
       loadComments();
     }
-  }, [open, loadPost, loadComments]);
+  }, [open, loadPost, loadComments, initialPost, initialUser]);
 
   // 좋아요 상태 확인 (supabaseUserId와 post가 있을 때)
   useEffect(() => {
@@ -249,10 +273,12 @@ function PostModal({
         
         // 댓글 수 증가
         if (post) {
-          setPost({
+          const updatedPost = {
             ...post,
             comments_count: post.comments_count + 1,
-          });
+          };
+          setPost(updatedPost);
+          onPostUpdate?.(postId, { comments_count: updatedPost.comments_count });
         }
       } catch (err) {
         console.error("Comment submit error:", err);
@@ -282,10 +308,12 @@ function PostModal({
         
         // 댓글 수 감소
         if (post) {
-          setPost({
+          const updatedPost = {
             ...post,
             comments_count: Math.max(0, post.comments_count - 1),
-          });
+          };
+          setPost(updatedPost);
+          onPostUpdate?.(postId, { comments_count: updatedPost.comments_count });
         }
       } catch (err) {
         console.error("Comment delete error:", err);
@@ -353,10 +381,12 @@ function PostModal({
 
         // 좋아요 수 증가
         if (post) {
-          setPost({
+          const updatedPost = {
             ...post,
             likes_count: post.likes_count + 1,
-          });
+          };
+          setPost(updatedPost);
+          onPostUpdate?.(postId, { likes_count: updatedPost.likes_count });
         }
       } else {
         // 좋아요 제거
@@ -371,10 +401,12 @@ function PostModal({
 
         // 좋아요 수 감소
         if (post) {
-          setPost({
+          const updatedPost = {
             ...post,
             likes_count: Math.max(0, post.likes_count - 1),
-          });
+          };
+          setPost(updatedPost);
+          onPostUpdate?.(postId, { likes_count: updatedPost.likes_count });
         }
       }
     } catch (err) {

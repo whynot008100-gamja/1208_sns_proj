@@ -159,17 +159,30 @@ export default function PostFeed({
     };
   }, [hasMore, loading, offset, loadPosts]);
 
-  // 좋아요 핸들러 (좋아요 수 업데이트)
-  // PostCard에서 이미 API를 호출하고 상태를 업데이트했으므로,
-  // 여기서는 좋아요 수만 낙관적으로 업데이트
-  const handleLike = useCallback((postId: string) => {
+  // 게시물 업데이트 핸들러 (좋아요, 댓글, 저장 등 모든 변경사항 반영)
+  const handlePostUpdate = useCallback((postId: string, updates: Partial<PostWithStats>) => {
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id === postId) {
-          // 좋아요 수를 1 증가 (낙관적 업데이트)
-          // 실제로는 PostCard의 isLiked 상태에 따라 증가/감소가 결정되지만,
-          // PostCard에서 이미 상태를 토글했으므로 여기서는 증가로 가정
-          return { ...p, likes_count: p.likes_count + 1 };
+          return { ...p, ...updates };
+        }
+        return p;
+      })
+    );
+  }, []);
+
+  // 좋아요 핸들러 (좋아요 수 업데이트)
+  const handleLike = useCallback((postId: string, isLiked: boolean) => {
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          // 좋아요 상태에 따라 증가/감소
+          return { 
+            ...p, 
+            likes_count: isLiked 
+              ? p.likes_count + 1 
+              : Math.max(0, p.likes_count - 1)
+          };
         }
         return p;
       })
@@ -267,11 +280,12 @@ export default function PostFeed({
           onComment={handleComment}
           onImageClick={handleImageClick}
           onDelete={handlePostDelete}
+          onPostUpdate={handlePostUpdate}
           isPriority={index === 0}
         />
       );
     });
-  }, [posts, users, handleLike, handleComment, handleImageClick, handlePostDelete]);
+  }, [posts, users, handleLike, handleComment, handleImageClick, handlePostDelete, handlePostUpdate]);
 
   return (
     <div className="w-full">
@@ -342,6 +356,7 @@ export default function PostFeed({
           hasPrevious={navigationInfo.hasPrevious}
           hasNext={navigationInfo.hasNext}
           onPostDelete={handlePostDelete}
+          onPostUpdate={handlePostUpdate}
         />
       )}
     </div>

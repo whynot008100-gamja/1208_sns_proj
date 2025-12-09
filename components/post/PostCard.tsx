@@ -33,10 +33,11 @@ interface PostCardProps {
   post: PostWithStats;
   user?: User;
   currentUserId?: string;
-  onLike?: (postId: string) => void;
+  onLike?: (postId: string, isLiked: boolean) => void; // 좋아요 상태 변경 시 호출
   onComment?: (postId: string) => void;
   onImageClick?: (postId: string) => void; // 이미지 클릭 시 모달 열기
   onDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
+  onPostUpdate?: (postId: string, updates: Partial<PostWithStats>) => void; // 게시물 업데이트 콜백
   isPriority?: boolean; // LCP 이미지 최적화용
 }
 
@@ -48,6 +49,7 @@ function PostCard({
   onComment,
   onImageClick,
   onDelete,
+  onPostUpdate,
   isPriority = false,
 }: PostCardProps) {
   const { user: clerkUser } = useUser();
@@ -201,6 +203,11 @@ function PostCard({
           // 최신 2개만 유지
           return updated.slice(-2);
         });
+        
+        // 댓글 수 업데이트
+        onPostUpdate?.(post.id, {
+          comments_count: post.comments_count + 1,
+        });
       } catch (err) {
         console.error("Comment submit error:", err);
         if (err instanceof TypeError && err.message === "Failed to fetch") {
@@ -227,6 +234,10 @@ function PostCard({
 
         // 댓글 목록에서 제거
         setComments((prev) => prev.filter((c) => c.id !== commentId));
+        // 댓글 수 업데이트
+        onPostUpdate?.(post.id, {
+          comments_count: Math.max(0, post.comments_count - 1),
+        });
         // 댓글이 부족하면 다시 로드
         if (comments.length <= 2) {
           loadComments();
@@ -337,7 +348,7 @@ function PostCard({
                 }
 
                 // 성공 시 콜백 호출 (좋아요 수 업데이트용)
-                onLike?.(post.id);
+                onLike?.(post.id, true);
               } catch (err) {
                 // 에러 발생 시 상태 롤백
                 setIsLiked(false);
@@ -412,7 +423,7 @@ function PostCard({
                 }
 
                 // 성공 시 콜백 호출 (좋아요 수 업데이트용)
-                onLike?.(post.id);
+                onLike?.(post.id, newLikedState);
               } catch (err) {
                 // 에러 발생 시 상태 롤백
                 setIsLiked(!newLikedState);
