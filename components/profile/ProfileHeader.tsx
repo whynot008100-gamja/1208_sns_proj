@@ -14,7 +14,9 @@
 "use client";
 
 import { useState, useMemo, memo } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignOutButton } from "@clerk/nextjs";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import FollowButton from "./FollowButton";
 import type { UserWithStats } from "@/lib/types";
 
@@ -83,14 +85,26 @@ function ProfileHeader({
 
             {/* 버튼 영역 */}
             {isOwnProfile ? (
-              // 본인 프로필: 프로필 편집 버튼 (1차 제외)
-              <button
-                className="px-4 py-1.5 bg-[var(--instagram-card-background)] border border-[var(--instagram-border)] rounded-lg font-semibold text-sm text-[var(--instagram-text-primary)] hover:bg-gray-50 transition-colors"
-                disabled
-                aria-label="프로필 편집"
-              >
-                프로필 편집
-              </button>
+              // 본인 프로필: 프로필 편집 버튼 (1차 제외) 및 로그아웃 버튼
+              <div className="flex items-center gap-2">
+                <button
+                  className="px-4 py-1.5 bg-[var(--instagram-card-background)] border border-[var(--instagram-border)] rounded-lg font-semibold text-sm text-[var(--instagram-text-primary)] hover:bg-gray-50 transition-colors"
+                  disabled
+                  aria-label="프로필 편집"
+                >
+                  프로필 편집
+                </button>
+                <SignOutButton>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    로그아웃
+                  </Button>
+                </SignOutButton>
+              </div>
             ) : (
               // 다른 사람 프로필: 팔로우 버튼
               <FollowButton
@@ -179,13 +193,24 @@ function ProfileHeader({
 
           {/* 버튼 영역 */}
           {isOwnProfile ? (
-            <button
-              className="w-full px-4 py-1.5 bg-[var(--instagram-card-background)] border border-[var(--instagram-border)] rounded-lg font-semibold text-sm text-[var(--instagram-text-primary)] hover:bg-gray-50 transition-colors"
-              disabled
-              aria-label="프로필 편집"
-            >
-              프로필 편집
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                className="w-full px-4 py-1.5 bg-[var(--instagram-card-background)] border border-[var(--instagram-border)] rounded-lg font-semibold text-sm text-[var(--instagram-text-primary)] hover:bg-gray-50 transition-colors"
+                disabled
+                aria-label="프로필 편집"
+              >
+                프로필 편집
+              </button>
+              <SignOutButton>
+                <Button
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  로그아웃
+                </Button>
+              </SignOutButton>
+            </div>
           ) : (
             <FollowButton
               followingId={user.id}

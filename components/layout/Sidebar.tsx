@@ -14,8 +14,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, PlusSquare, User } from "lucide-react";
-import { useUser, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Home, Search, PlusSquare, User, LogOut } from "lucide-react";
+import { useUser, SignedOut, SignedIn, SignInButton, SignUpButton, SignOutButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import CreatePostModal from "@/components/post/CreatePostModal";
@@ -89,7 +89,7 @@ export default function Sidebar() {
         </SignedOut>
 
         {/* 네비게이션 메뉴 */}
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.isActive ? item.isActive(pathname) : false;
@@ -144,6 +144,21 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        {/* 로그인한 경우: 로그아웃 버튼 (하단 고정) */}
+        <SignedIn>
+          <div className="mb-4 px-3">
+            <SignOutButton>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-[var(--instagram-text-primary)] hover:bg-gray-50"
+              >
+                <LogOut className="w-6 h-6" />
+                <span className="hidden lg:inline ml-4">로그아웃</span>
+              </Button>
+            </SignOutButton>
+          </div>
+        </SignedIn>
       </div>
 
       {/* 게시물 작성 모달 */}
