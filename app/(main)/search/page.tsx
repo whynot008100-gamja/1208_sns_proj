@@ -30,7 +30,6 @@ export default function SearchPage() {
   const [postUsers, setPostUsers] = useState<User[]>([]); // 게시물 작성자 정보
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -46,6 +45,7 @@ export default function SearchPage() {
       setPosts([]);
       setUsers([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // 검색 실행 함수
@@ -80,7 +80,6 @@ export default function SearchPage() {
         setPosts(data.posts || []);
         setUsers(data.users || []);
         setPostUsers(data.postUsers || []);
-        setHasMore(data.hasMore || false);
       } catch (err) {
         console.error("Search error:", err);
         setError(

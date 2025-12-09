@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         const userIds = [...new Set(postStats.map((p) => p.user_id))];
         const { data: users, error: usersError } = await supabase
           .from("users")
-          .select("id, clerk_id, name")
+          .select("id, clerk_id, name, created_at")
           .in("id", userIds);
 
         if (usersError) {
