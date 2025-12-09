@@ -45,6 +45,7 @@ import CommentList from "@/components/comment/CommentList";
 import CommentForm from "@/components/comment/CommentForm";
 import PostMenu from "./PostMenu";
 import DeletePostDialog from "./DeletePostDialog";
+import EditPostModal from "./EditPostModal";
 
 interface PostModalProps {
   postId: string;
@@ -88,6 +89,7 @@ function PostModal({
   const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>();
   const commentAreaRef = useRef<HTMLDivElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // 본인 게시물 여부 확인
   const isOwner = supabaseUserId === post?.user_id;
@@ -607,6 +609,7 @@ function PostModal({
           </div>
           <PostMenu
             isOwner={isOwner || false}
+            onEdit={() => setIsEditModalOpen(true)}
             onDelete={() => setIsDeleteDialogOpen(true)}
           />
         </div>
@@ -790,6 +793,7 @@ function PostModal({
           </div>
           <PostMenu
             isOwner={isOwner || false}
+            onEdit={() => setIsEditModalOpen(true)}
             onDelete={() => setIsDeleteDialogOpen(true)}
           />
         </div>
@@ -952,6 +956,21 @@ function PostModal({
         <div className="fixed inset-0 z-50 bg-[var(--instagram-card-background)]">
           {mobileContent}
         </div>
+      )}
+
+      {/* 수정 모달 */}
+      {post && (
+        <EditPostModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          post={post}
+          onSuccess={(updatedPost) => {
+            // 게시물 업데이트 콜백 호출
+            onPostUpdate?.(post.id, updatedPost);
+            // 모달 내부의 post 상태도 업데이트
+            setPost(updatedPost);
+          }}
+        />
       )}
 
       {/* 삭제 확인 다이얼로그 */}

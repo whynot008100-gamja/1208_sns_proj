@@ -21,10 +21,11 @@ import { Button } from "@/components/ui/button";
 
 interface PostMenuProps {
   isOwner: boolean; // 본인 게시물인지 여부
+  onEdit?: () => void; // 수정 버튼 클릭 시 콜백
   onDelete: () => void; // 삭제 버튼 클릭 시 콜백
 }
 
-export default function PostMenu({ isOwner, onDelete }: PostMenuProps) {
+export default function PostMenu({ isOwner, onEdit, onDelete }: PostMenuProps) {
   // 본인 게시물이 아니면 메뉴를 표시하지 않음
   if (!isOwner) {
     return null;
@@ -43,6 +44,14 @@ export default function PostMenu({ isOwner, onDelete }: PostMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {onEdit && (
+          <DropdownMenuItem
+            onClick={onEdit}
+            className="focus:bg-gray-50"
+          >
+            수정
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={onDelete}
           className="text-red-600 focus:text-red-600 focus:bg-red-50"

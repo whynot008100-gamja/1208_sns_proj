@@ -28,6 +28,7 @@ import CommentList from "@/components/comment/CommentList";
 import CommentForm from "@/components/comment/CommentForm";
 import PostMenu from "./PostMenu";
 import DeletePostDialog from "./DeletePostDialog";
+import EditPostModal from "./EditPostModal";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -62,6 +63,7 @@ function PostCard({
   const [loadingComments, setLoadingComments] = useState(false);
   const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>(currentUserId);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -300,6 +302,7 @@ function PostCard({
         {/* ⋯ 메뉴: 우측 정렬 */}
         <PostMenu
           isOwner={isOwner}
+          onEdit={() => setIsEditModalOpen(true)}
           onDelete={() => setIsDeleteDialogOpen(true)}
         />
       </header>
@@ -671,6 +674,17 @@ function PostCard({
         onSubmit={handleCommentSubmit}
         placeholder="댓글 달기..."
         autoFocus={false}
+      />
+
+      {/* 수정 모달 */}
+      <EditPostModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        post={post}
+        onSuccess={(updatedPost) => {
+          // 게시물 업데이트 콜백 호출
+          onPostUpdate?.(post.id, updatedPost);
+        }}
       />
 
       {/* 삭제 확인 다이얼로그 */}
