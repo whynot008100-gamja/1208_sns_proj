@@ -4,12 +4,12 @@
 -- 게시물 테이블에서 제목 필드 제거 및 post_stats 뷰 원복
 -- ============================================
 
+-- 먼저 post_stats 뷰를 삭제 (title 컬럼에 의존하므로)
+DROP VIEW IF EXISTS public.post_stats;
+
 -- posts 테이블에서 title 컬럼 제거
 ALTER TABLE public.posts 
 DROP COLUMN IF EXISTS title;
-
--- post_stats 뷰를 원래 상태로 복원 (title 필드 제거)
-DROP VIEW IF EXISTS public.post_stats;
 
 CREATE VIEW public.post_stats AS
 SELECT
