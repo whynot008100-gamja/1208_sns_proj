@@ -27,7 +27,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  ),
   title: "Mini Instagram - 바이브 코딩 SNS",
   description: "Instagram 스타일 SNS 애플리케이션",
   keywords: ["Instagram", "SNS", "소셜 네트워크", "사진 공유"],
@@ -36,20 +38,11 @@ export const metadata: Metadata = {
     title: "Mini Instagram",
     description: "Instagram 스타일 SNS 애플리케이션",
     type: "website",
-    images: [
-      {
-        url: "/board.png",
-        width: 1200,
-        height: 630,
-        alt: "Mini Instagram",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mini Instagram",
     description: "Instagram 스타일 SNS 애플리케이션",
-    images: ["/board.png"],
   },
 };
 
@@ -69,9 +62,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <SyncUserProvider>
-            {children}
-          </SyncUserProvider>
+          <SyncUserProvider>{children}</SyncUserProvider>
         </body>
       </html>
     </ClerkProvider>
