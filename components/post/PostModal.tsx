@@ -90,6 +90,7 @@ function PostModal({
   const commentAreaRef = useRef<HTMLDivElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const isLoadingCommentsRef = useRef(false);
 
   // 본인 게시물 여부 확인
   const isOwner = supabaseUserId === post?.user_id;
@@ -173,11 +174,23 @@ function PostModal({
 
   // 댓글 전체 목록 로드
   const loadComments = useCallback(async () => {
-    if (loadingComments) return;
+    if (!postId || isLoadingCommentsRef.current) return;
 
+    isLoadingCommentsRef.current = true;
     setLoadingComments(true);
+    
+    // 타임아웃 설정 (10초 후 강제 종료)
+    const timeoutId = setTimeout(() => {
+      console.warn("댓글 로딩 타임아웃");
+      isLoadingCommentsRef.current = false;
+      setLoadingComments(false);
+      setComments([]);
+    }, 10000);
+
     try {
       const response = await fetch(`/api/comments?postId=${postId}`);
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "댓글을 불러오는데 실패했습니다.");
@@ -185,15 +198,19 @@ function PostModal({
       const data = await response.json();
       setComments(data.comments || []);
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error("Load comments error:", err);
+      // 에러 발생 시 빈 배열로 설정
+      setComments([]);
     } finally {
+      isLoadingCommentsRef.current = false;
       setLoadingComments(false);
     }
-  }, [postId, loadingComments]);
+  }, [postId]);
 
   // 모달이 열릴 때 데이터 로드
   useEffect(() => {
-    if (open) {
+    if (open && postId) {
       // initialPost가 변경되면 최신 데이터로 업데이트
       if (initialPost) {
         setPost(initialPost);
@@ -203,8 +220,13 @@ function PostModal({
       }
       loadPost();
       loadComments();
+    } else if (!open) {
+      // 모달이 닫힐 때 상태 초기화
+      setComments([]);
+      setLoadingComments(false);
+      isLoadingCommentsRef.current = false;
     }
-  }, [open, loadPost, loadComments, initialPost, initialUser]);
+  }, [open, postId, loadPost, loadComments, initialPost, initialUser]);
 
   // 좋아요 상태 확인 (supabaseUserId와 post가 있을 때)
   useEffect(() => {
@@ -234,7 +256,7 @@ function PostModal({
 
   // 저장 상태 확인 (supabaseUserId와 post가 있을 때)
   useEffect(() => {
-    if (!supabaseUserId || !post) return;
+    if (!supabaseUserId || !post?.id) return;
 
     const checkSaveStatus = async () => {
       try {
@@ -242,15 +264,19 @@ function PostModal({
         if (response.ok) {
           const data = await response.json();
           setIsSaved(data.isSaved || false);
+        } else {
+          // 응답이 실패해도 에러로 처리하지 않음 (저장되지 않은 것으로 간주)
+          setIsSaved(false);
         }
       } catch (err) {
         console.error("Failed to check save status:", err);
+        // 네트워크 에러 등은 저장되지 않은 것으로 간주
         setIsSaved(false);
       }
     };
 
     checkSaveStatus();
-  }, [supabaseUserId, post]);
+  }, [supabaseUserId, post?.id]);
 
   // 댓글 작성 핸들러
   const handleCommentSubmit = useCallback(
@@ -965,10 +991,10 @@ function PostModal({
           onOpenChange={setIsEditModalOpen}
           post={post}
           onSuccess={(updatedPost) => {
-            // 게시물 업데이트 콜백 호출
-            onPostUpdate?.(post.id, updatedPost);
-            // 모달 내부의 post 상태도 업데이트
+            // 모달 내부의 post 상태 먼저 업데이트
             setPost(updatedPost);
+            // 게시물 업데이트 콜백 호출 (PostFeed의 handlePostUpdate로 전달되어 PostCard도 업데이트됨)
+            onPostUpdate?.(post.id, updatedPost);
           }}
         />
       )}

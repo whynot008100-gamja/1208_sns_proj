@@ -386,7 +386,12 @@ export default function PostFeed({
           hasPrevious={navigationInfo.hasPrevious}
           hasNext={navigationInfo.hasNext}
           onPostDelete={handlePostDelete}
-          onPostUpdate={handlePostUpdate}
+          onPostUpdate={(postId, updates) => {
+            // PostFeed의 posts 업데이트 (PostCard도 자동으로 업데이트됨)
+            handlePostUpdate(postId, updates);
+            // PostModal의 initialPost도 업데이트하기 위해 posts 상태가 변경되면
+            // selectedPost가 useMemo로 자동 재계산되어 최신 데이터로 업데이트됨
+          }}
           onSaveRemove={saved ? handleSaveRemove : undefined}
         />
       )}
