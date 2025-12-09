@@ -80,27 +80,6 @@ export interface Save {
   created_at: string; // ISO timestamp
 }
 
-/**
- * 해시태그
- * @see supabase/migrations/20250105000000_create_hashtags_table.sql
- */
-export interface Hashtag {
-  id: string; // UUID
-  name: string; // 해시태그 이름 (예: "여행", "맛집")
-  created_at: string; // ISO timestamp
-}
-
-/**
- * 게시물-해시태그 연결
- * @see supabase/migrations/20250105000000_create_hashtags_table.sql
- */
-export interface PostHashtag {
-  id: string; // UUID
-  post_id: string; // UUID
-  hashtag_id: string; // UUID
-  created_at: string; // ISO timestamp
-}
-
 // ============================================
 // 뷰 타입 (통계)
 // ============================================
@@ -131,17 +110,6 @@ export interface UserStats {
   posts_count: number;
   followers_count: number; // 나를 팔로우하는 사람들
   following_count: number; // 내가 팔로우하는 사람들
-}
-
-/**
- * 해시태그 통계 뷰
- * @see hashtag_stats view
- */
-export interface HashtagStats {
-  hashtag_id: string; // UUID
-  hashtag_name: string;
-  created_at: string; // ISO timestamp
-  posts_count: number;
 }
 
 // ============================================
