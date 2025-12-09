@@ -80,6 +80,7 @@ function PostModal({
   const [loadingComments, setLoadingComments] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [supabaseUserId, setSupabaseUserId] = useState<string | undefined>();
   const commentAreaRef = useRef<HTMLDivElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -176,6 +177,52 @@ function PostModal({
       loadComments();
     }
   }, [open, loadPost, loadComments]);
+
+  // 좋아요 상태 확인 (supabaseUserId와 post가 있을 때)
+  useEffect(() => {
+    if (!supabaseUserId || !post) return;
+
+    const checkLikeStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("likes")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", supabaseUserId)
+          .single();
+
+        if (!error && data) {
+          setIsLiked(true);
+        } else {
+          setIsLiked(false);
+        }
+      } catch (err) {
+        setIsLiked(false);
+      }
+    };
+
+    checkLikeStatus();
+  }, [supabaseUserId, post, supabase]);
+
+  // 저장 상태 확인 (supabaseUserId와 post가 있을 때)
+  useEffect(() => {
+    if (!supabaseUserId || !post) return;
+
+    const checkSaveStatus = async () => {
+      try {
+        const response = await fetch(`/api/saves?postId=${post.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsSaved(data.isSaved || false);
+        }
+      } catch (err) {
+        console.error("Failed to check save status:", err);
+        setIsSaved(false);
+      }
+    };
+
+    checkSaveStatus();
+  }, [supabaseUserId, post]);
 
   // 댓글 작성 핸들러
   const handleCommentSubmit = useCallback(
@@ -282,10 +329,136 @@ function PostModal({
   }, [onOpenChange]);
 
   // 좋아요 핸들러
-  const handleLike = useCallback(() => {
-    setIsLiked(!isLiked);
-    // TODO: 좋아요 API 호출 (1차 제외)
-  }, [isLiked]);
+  const handleLike = useCallback(async () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState); // 낙관적 업데이트
+
+    try {
+      if (newLikedState) {
+        // 좋아요 추가
+        const response = await fetch("/api/likes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ postId }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status !== 409) {
+            throw new Error(errorData.error || "좋아요 추가에 실패했습니다.");
+          }
+        }
+
+        // 좋아요 수 증가
+        if (post) {
+          setPost({
+            ...post,
+            likes_count: post.likes_count + 1,
+          });
+        }
+      } else {
+        // 좋아요 제거
+        const response = await fetch(`/api/likes?postId=${postId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "좋아요 제거에 실패했습니다.");
+        }
+
+        // 좋아요 수 감소
+        if (post) {
+          setPost({
+            ...post,
+            likes_count: Math.max(0, post.likes_count - 1),
+          });
+        }
+      }
+    } catch (err) {
+      // 에러 발생 시 상태 롤백
+      setIsLiked(!newLikedState);
+      console.error("Like error:", err);
+    }
+  }, [isLiked, postId, post]);
+
+  // 저장 핸들러
+  const handleSave = useCallback(async () => {
+    const newSavedState = !isSaved;
+    setIsSaved(newSavedState); // 낙관적 업데이트
+
+    try {
+      if (newSavedState) {
+        // 저장 추가
+        const response = await fetch("/api/saves", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ postId }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status !== 409) {
+            console.error("Save API error:", {
+              status: response.status,
+              error: errorData,
+            });
+            throw new Error(errorData.error || "저장에 실패했습니다.");
+          }
+        }
+      } else {
+        // 저장 제거
+        const response = await fetch(`/api/saves?postId=${postId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Save delete API error:", {
+            status: response.status,
+            error: errorData,
+          });
+          throw new Error(errorData.error || "저장 취소에 실패했습니다.");
+        }
+      }
+    } catch (err) {
+      // 에러 발생 시 상태 롤백
+      setIsSaved(!newSavedState);
+      console.error("Save error:", err);
+      let errorMessage = "저장 처리에 실패했습니다.";
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        errorMessage = "인터넷 연결을 확인해주세요.";
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+        // 테이블이 존재하지 않는 경우 특별한 메시지
+        if (err.message.includes("마이그레이션") || err.message.includes("TABLE_NOT_FOUND")) {
+          errorMessage = "저장 기능을 사용하려면 데이터베이스 마이그레이션을 먼저 적용해주세요.";
+        }
+      }
+      alert(errorMessage);
+    }
+  }, [isSaved, postId]);
+
+  // 공유 핸들러
+  const handleShare = useCallback(async () => {
+    try {
+      // 게시물 URL 생성
+      const postUrl = `${window.location.origin}/post/${postId}`;
+      
+      // 클립보드에 복사
+      await navigator.clipboard.writeText(postUrl);
+      
+      // 성공 피드백
+      alert("링크가 클립보드에 복사되었습니다!");
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+      alert("링크 복사에 실패했습니다.");
+    }
+  }, [postId]);
 
   // 로딩 상태
   if (loading) {
@@ -444,18 +617,28 @@ function PostModal({
                 </button>
                 <button
                   className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
+                  onClick={handleShare}
                   aria-label="공유"
-                  disabled
+                  type="button"
                 >
                   <Send className="w-6 h-6" />
                 </button>
               </div>
               <button
-                className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity"
-                aria-label="저장"
-                disabled
+                className={cn(
+                  "transition-opacity",
+                  isSaved
+                    ? "text-[var(--instagram-text-primary)]"
+                    : "text-[var(--instagram-text-primary)] hover:opacity-70"
+                )}
+                onClick={handleSave}
+                aria-label={isSaved ? "저장 취소" : "저장"}
+                type="button"
               >
-                <Bookmark className="w-6 h-6" />
+                <Bookmark
+                  className={cn("w-6 h-6 transition-all duration-150", isSaved && "fill-current")}
+                  strokeWidth={isSaved ? 0 : 2}
+                />
               </button>
             </div>
 

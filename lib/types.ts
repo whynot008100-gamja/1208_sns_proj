@@ -68,6 +68,17 @@ export interface Follow {
   created_at: string; // ISO timestamp
 }
 
+/**
+ * 저장/북마크
+ * @see supabase/migrations/20250102000002_create_saves_table.sql
+ */
+export interface Save {
+  id: string; // UUID
+  post_id: string; // UUID
+  user_id: string; // UUID
+  created_at: string; // ISO timestamp
+}
+
 // ============================================
 // 뷰 타입 (통계)
 // ============================================

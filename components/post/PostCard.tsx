@@ -60,6 +60,7 @@ function PostCard({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // 본인 게시물 여부 확인
   const isOwner = supabaseUserId === post.user_id;
@@ -122,6 +123,26 @@ function PostCard({
 
     checkLikeStatus();
   }, [supabaseUserId, post.id, supabase]);
+
+  // 저장 상태 확인 (supabaseUserId가 있을 때)
+  useEffect(() => {
+    if (!supabaseUserId) return;
+
+    const checkSaveStatus = async () => {
+      try {
+        const response = await fetch(`/api/saves?postId=${post.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsSaved(data.isSaved || false);
+        }
+      } catch (err) {
+        console.error("Failed to check save status:", err);
+        setIsSaved(false);
+      }
+    };
+
+    checkSaveStatus();
+  }, [supabaseUserId, post.id]);
 
   // 댓글 조회 함수
   const loadComments = useCallback(async () => {
@@ -430,25 +451,101 @@ function PostCard({
             <MessageCircle className="w-6 h-6" aria-hidden="true" />
           </button>
 
-          {/* 공유 버튼 (UI만, 1차 제외) */}
+          {/* 공유 버튼 */}
           <button
             className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
+            onClick={async () => {
+              try {
+                // 게시물 URL 생성
+                const postUrl = `${window.location.origin}/post/${post.id}`;
+                
+                // 클립보드에 복사
+                await navigator.clipboard.writeText(postUrl);
+                
+                // 성공 피드백 (간단한 alert 사용)
+                alert("링크가 클립보드에 복사되었습니다!");
+              } catch (err) {
+                console.error("Failed to copy URL:", err);
+                alert("링크 복사에 실패했습니다.");
+              }
+            }}
             aria-label="공유"
-            disabled
             type="button"
           >
             <Send className="w-6 h-6" aria-hidden="true" />
           </button>
         </div>
 
-        {/* 북마크 버튼 (UI만, 1차 제외) */}
+        {/* 북마크 버튼 */}
         <button
-          className="text-[var(--instagram-text-primary)] hover:opacity-70 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded"
-          aria-label="저장"
-          disabled
+          className={cn(
+            "transition-opacity focus:outline-none focus:ring-2 focus:ring-[#0095f6] focus:ring-offset-2 rounded",
+            isSaved
+              ? "text-[var(--instagram-text-primary)]"
+              : "text-[var(--instagram-text-primary)] hover:opacity-70"
+          )}
+          onClick={async () => {
+            const newSavedState = !isSaved;
+            setIsSaved(newSavedState); // 낙관적 업데이트
+
+            try {
+              if (newSavedState) {
+                // 저장 추가
+                const response = await fetch("/api/saves", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ postId: post.id }),
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  // 409 (이미 저장한 경우)는 무시
+                  if (response.status !== 409) {
+                    console.error("Save API error:", {
+                      status: response.status,
+                      error: errorData,
+                    });
+                    throw new Error(errorData.error || "저장에 실패했습니다.");
+                  }
+                }
+              } else {
+                // 저장 제거
+                const response = await fetch(`/api/saves?postId=${post.id}`, {
+                  method: "DELETE",
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  throw new Error(errorData.error || "저장 취소에 실패했습니다.");
+                }
+              }
+            } catch (err) {
+              // 에러 발생 시 상태 롤백
+              setIsSaved(!newSavedState);
+              console.error("Save error:", err);
+              let errorMessage = "저장 처리에 실패했습니다.";
+              if (err instanceof TypeError && err.message === "Failed to fetch") {
+                errorMessage = "인터넷 연결을 확인해주세요.";
+              } else if (err instanceof Error) {
+                errorMessage = err.message;
+                // 테이블이 존재하지 않는 경우 특별한 메시지
+                if (err.message.includes("마이그레이션") || err.message.includes("TABLE_NOT_FOUND")) {
+                  errorMessage = "저장 기능을 사용하려면 데이터베이스 마이그레이션을 먼저 적용해주세요.";
+                }
+              }
+              alert(errorMessage);
+            }
+          }}
+          aria-label={isSaved ? "저장 취소" : "저장"}
           type="button"
         >
-          <Bookmark className="w-6 h-6" aria-hidden="true" />
+          <Bookmark
+            className={cn("w-6 h-6 transition-all duration-150", isSaved && "fill-current")}
+            strokeWidth={isSaved ? 0 : 2}
+            aria-hidden="true"
+          />
         </button>
       </div>
 
