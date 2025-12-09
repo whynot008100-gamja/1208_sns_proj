@@ -38,6 +38,7 @@ interface PostCardProps {
   onImageClick?: (postId: string) => void; // 이미지 클릭 시 모달 열기
   onDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
   onPostUpdate?: (postId: string, updates: Partial<PostWithStats>) => void; // 게시물 업데이트 콜백
+  onSaveRemove?: (postId: string) => void; // 저장 취소 시 콜백 (저장된 게시물 페이지에서 사용)
   isPriority?: boolean; // LCP 이미지 최적화용
 }
 
@@ -50,6 +51,7 @@ function PostCard({
   onImageClick,
   onDelete,
   onPostUpdate,
+  onSaveRemove,
   isPriority = false,
 }: PostCardProps) {
   const { user: clerkUser } = useUser();
@@ -561,6 +563,9 @@ function PostCard({
                   });
                   throw new Error(errorData.error || "저장 취소에 실패했습니다.");
                 }
+                
+                // 저장 취소 성공 시 콜백 호출 (저장된 게시물 페이지에서 목록에서 제거)
+                onSaveRemove?.(post.id);
               }
             } catch (err) {
               // 에러 발생 시 상태 롤백

@@ -19,6 +19,7 @@ import type { PostWithStats, User } from "@/lib/types";
 
 interface PostFeedProps {
   userId?: string; // 특정 사용자의 게시물만 표시 (프로필 페이지용)
+  saved?: boolean; // 저장된 게시물만 표시
   initialPosts?: PostWithStats[];
   onRefresh?: (refreshFn: () => void) => void; // 외부에서 refresh 함수를 받을 수 있도록
 }
@@ -31,6 +32,7 @@ interface PostsResponse {
 
 export default function PostFeed({
   userId,
+  saved = false,
   initialPosts = [],
   onRefresh,
 }: PostFeedProps) {
@@ -62,11 +64,14 @@ export default function PostFeed({
           offset: currentOffset.toString(),
         });
 
-        if (userId) {
+        let apiUrl = "/api/posts";
+        if (saved) {
+          apiUrl = "/api/posts/saved";
+        } else if (userId) {
           params.append("userId", userId);
         }
 
-        const response = await fetch(`/api/posts?${params.toString()}`);
+        const response = await fetch(`${apiUrl}?${params.toString()}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || "게시물을 불러오는데 실패했습니다.");
@@ -111,7 +116,7 @@ export default function PostFeed({
         loadingRef.current = false;
       }
     },
-    [userId]
+    [userId, saved]
   );
 
   // 피드 새로고침 함수
@@ -267,6 +272,22 @@ export default function PostFeed({
     [selectedPostId]
   );
 
+  // 저장 취소 핸들러 (저장된 게시물 페이지에서만 사용)
+  const handleSaveRemove = useCallback(
+    (postId: string) => {
+      if (saved) {
+        // 저장된 게시물 페이지에서 저장 취소 시 목록에서 제거
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
+        // 모달이 열려있으면 닫기
+        if (selectedPostId === postId) {
+          setIsModalOpen(false);
+          setSelectedPostId(null);
+        }
+      }
+    },
+    [saved, selectedPostId]
+  );
+
   // 게시물 목록 메모이제이션 (조건부 return 전에 호출)
   const postCards = useMemo(() => {
     return posts.map((post, index) => {
@@ -281,6 +302,7 @@ export default function PostFeed({
           onImageClick={handleImageClick}
           onDelete={handlePostDelete}
           onPostUpdate={handlePostUpdate}
+          onSaveRemove={saved ? handleSaveRemove : undefined}
           isPriority={index === 0}
         />
       );
@@ -306,16 +328,24 @@ export default function PostFeed({
       {!loading && !error && posts.length === 0 && !hasMore && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-24 h-24 mb-4 rounded-full border-2 border-[var(--instagram-text-secondary)] flex items-center justify-center">
-            <svg className="w-12 h-12 text-[var(--instagram-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            {saved ? (
+              <svg className="w-12 h-12 text-[var(--instagram-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            ) : (
+              <svg className="w-12 h-12 text-[var(--instagram-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            )}
           </div>
           <h3 className="text-xl font-semibold text-[var(--instagram-text-primary)] mb-2">
-            게시물이 없습니다
+            {saved ? "저장된 게시물이 없습니다" : "게시물이 없습니다"}
           </h3>
           <p className="text-[var(--instagram-text-secondary)] text-sm">
-            첫 번째 게시물을 공유해보세요!
+            {saved 
+              ? "게시물을 저장하면 여기에 표시됩니다." 
+              : "첫 번째 게시물을 공유해보세요!"}
           </p>
         </div>
       )}
@@ -357,6 +387,7 @@ export default function PostFeed({
           hasNext={navigationInfo.hasNext}
           onPostDelete={handlePostDelete}
           onPostUpdate={handlePostUpdate}
+          onSaveRemove={saved ? handleSaveRemove : undefined}
         />
       )}
     </div>

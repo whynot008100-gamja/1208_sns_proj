@@ -14,7 +14,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, PlusSquare, User, LogOut } from "lucide-react";
+import { Home, Search, PlusSquare, User, LogOut, Bookmark } from "lucide-react";
 import { useUser, SignedOut, SignedIn, SignInButton, SignUpButton, SignOutButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,12 @@ export default function Sidebar() {
       icon: User,
       label: "프로필",
       isActive: (path) => path.startsWith("/profile"),
+    },
+    {
+      href: "/saved",
+      icon: Bookmark,
+      label: "저장됨",
+      isActive: (path) => path === "/saved",
     },
   ];
 
