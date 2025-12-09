@@ -17,9 +17,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@/utils/supabase/server";
-import { getServiceRoleClient } from "@/utils/supabase/service-role";
-import type { PostWithStats, Post } from "@/lib/types";
+import { createClerkSupabaseClient } from "@/utils/supabase/clerk-server";
+import type { PostWithStats } from "@/lib/types";
+
+// Route Segment Config: Next.js 15 API Routes 설정
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5분 (큰 파일 업로드용)
+
+// Next.js 15에서 큰 FormData를 처리하기 위한 설정
+// 참고: body size limit은 기본적으로 충분하지만, 명시적으로 설정
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/posts
@@ -30,7 +37,7 @@ import type { PostWithStats, Post } from "@/lib/types";
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createClerkSupabaseClient();
     const searchParams = request.nextUrl.searchParams;
 
     // 쿼리 파라미터 파싱
@@ -118,9 +125,12 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/posts
- * 게시물 생성
+ * 게시물 생성 (메타데이터만 저장)
  *
- * @param request - NextRequest 객체 (FormData 포함)
+ * 클라이언트에서 직접 Supabase Storage에 파일을 업로드한 후,
+ * 이 API를 호출하여 posts 테이블에 메타데이터만 저장합니다.
+ *
+ * @param request - NextRequest 객체 (JSON body: { image_url, title, caption })
  * @returns 생성된 게시물 데이터
  */
 export async function POST(request: NextRequest) {
@@ -134,43 +144,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. FormData 파싱
-    const formData = await request.formData();
-    const imageFile = formData.get("image") as File | null;
-    const title = formData.get("title") as string | null;
-    const caption = formData.get("caption") as string | null;
-
-    // 3. 미디어 파일 검증
-    if (!imageFile) {
+    // 2. JSON body 파싱
+    let body: { image_url: string; title?: string | null; caption?: string | null };
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      console.error("❌ JSON parsing error:", jsonError);
       return NextResponse.json(
-        { error: "미디어 파일이 필요합니다." },
+        { error: "잘못된 요청 형식입니다. JSON 형식이 필요합니다." },
         { status: 400 }
       );
     }
 
-    // 파일 타입 검증 (이미지 + 동영상)
-    const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
-    const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
-    const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
-    
-    if (!allowedTypes.includes(imageFile.type)) {
+    // 3. 필수 필드 검증
+    if (!body.image_url || typeof body.image_url !== "string") {
       return NextResponse.json(
-        { error: "JPEG, PNG, WebP 이미지 또는 MP4, WebM, QuickTime, AVI 동영상만 업로드할 수 있습니다." },
+        { error: "image_url이 필요합니다." },
         { status: 400 }
       );
     }
 
-    // 파일 크기 검증 (50MB)
-    const maxSizeBytes = 50 * 1024 * 1024; // 50MB
-    if (imageFile.size > maxSizeBytes) {
+    // image_url이 Supabase Storage URL인지 검증
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    if (!body.image_url.startsWith(`${supabaseUrl}/storage/v1/object/public/posts/`)) {
       return NextResponse.json(
-        { error: "파일 크기는 50MB 이하여야 합니다." },
+        { error: "유효하지 않은 이미지 URL입니다." },
         { status: 400 }
       );
     }
 
     // 4. Clerk User ID로 Supabase User ID 조회
-    const supabase = await createClient();
+    const supabase = createClerkSupabaseClient();
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("id")
@@ -187,59 +191,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Supabase Storage에 이미지 업로드
-    const serviceRoleClient = getServiceRoleClient();
-    const fileExt = imageFile.name.split(".").pop() || "jpg";
-    const fileName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(7)}.${fileExt}`;
-
-    // 파일을 ArrayBuffer로 변환
-    const arrayBuffer = await imageFile.arrayBuffer();
-    const { data: uploadData, error: uploadError } =
-      await serviceRoleClient.storage
-        .from("posts")
-        .upload(fileName, arrayBuffer, {
-          contentType: imageFile.type,
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-    if (uploadError || !uploadData) {
-      console.error("Storage upload error:", uploadError);
-      return NextResponse.json(
-        { error: "이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요." },
-        { status: 500 }
-      );
-    }
-
-    // 6. Public URL 생성
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const imageUrl = `${supabaseUrl}/storage/v1/object/public/posts/${fileName}`;
-
-    // 7. posts 테이블에 데이터 저장
+    // 5. posts 테이블에 데이터 저장
     const { data: post, error: insertError } = await supabase
       .from("posts")
       .insert({
         user_id: user.id,
-        image_url: imageUrl,
-        title: title && title.trim() ? title.trim() : null,
-        caption: caption && caption.trim() ? caption.trim() : null,
+        image_url: body.image_url,
+        title: body.title && body.title.trim() ? body.title.trim() : null,
+        caption: body.caption && body.caption.trim() ? body.caption.trim() : null,
       })
       .select()
       .single();
 
     if (insertError || !post) {
-      console.error("Post insert error:", insertError);
-      // 업로드된 파일 삭제 시도
-      await serviceRoleClient.storage.from("posts").remove([fileName]);
+      console.error("Post insert error:", {
+        error: insertError,
+        userId: user.id,
+        imageUrl: body.image_url,
+        title: body.title,
+        caption: body.caption ? body.caption.substring(0, 50) + "..." : null,
+      });
+      
       return NextResponse.json(
-        { error: "게시물 저장에 실패했습니다. 잠시 후 다시 시도해주세요." },
+        { 
+          error: "게시물 저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          details: insertError?.message 
+        },
         { status: 500 }
       );
     }
 
-    // 8. 응답 반환 (PostWithStats 형식으로 변환)
+    // 6. 응답 반환 (PostWithStats 형식으로 변환)
     const postWithStats: PostWithStats = {
       ...post,
       likes_count: 0,
@@ -248,10 +230,21 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(postWithStats, { status: 201 });
   } catch (error) {
-    console.error("POST /api/posts error:", error);
+    console.error("POST /api/posts error:", {
+      error,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    
+    let errorMessage = "게시물 생성에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    if (error instanceof Error) {
+      errorMessage = error.message || errorMessage;
+    }
+    
     return NextResponse.json(
-      {
-        error: "게시물 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      { 
+        error: errorMessage,
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     );

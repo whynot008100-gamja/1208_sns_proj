@@ -31,6 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { X, Upload, Loader2 } from "lucide-react";
 import { validateMediaFile } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useClerkSupabaseClient } from "@/lib/supabase/clerk-client";
 
 interface CreatePostModalProps {
   open: boolean;
@@ -45,6 +46,7 @@ export default function CreatePostModal({
   onOpenChange,
   onSuccess,
 }: CreatePostModalProps) {
+  const supabase = useClerkSupabaseClient();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
@@ -60,9 +62,34 @@ export default function CreatePostModal({
       const file = event.target.files?.[0];
       if (!file) return;
 
+      // 🔍 즉시 디버깅 정보 출력
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+      console.group("🔍 파일 선택 디버깅");
+      console.log("📁 파일 정보:", {
+        이름: file.name,
+        크기: `${fileSizeMB} MB`,
+        크기_바이트: `${file.size.toLocaleString()} bytes`,
+        타입: file.type,
+        최대_제한: "50MB",
+        상태: file.size > 50 * 1024 * 1024 ? "❌ 초과" : "✅ 허용",
+      });
+      console.log("🎬 미디어 타입:", file.type.startsWith("video/") ? "동영상" : "이미지");
+      console.groupEnd();
+
+      // 파일 크기 사전 검증 (즉시 피드백)
+      if (file.size > 50 * 1024 * 1024) {
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        setError(`파일이 너무 큽니다. (${sizeMB}MB / 최대 50MB)`);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+
       // 파일 검증
       const validation = validateMediaFile(file);
       if (!validation.valid) {
+        console.error("❌ 파일 검증 실패:", validation.error);
         setError(validation.error || "파일 선택에 실패했습니다.");
         return;
       }
@@ -72,6 +99,8 @@ export default function CreatePostModal({
       setMediaType(isVideo ? "video" : "image");
       setSelectedFile(file);
       setError(null);
+
+      console.log("✅ 파일 검증 통과, 미리보기 생성 중...");
 
       // 미리보기 URL 생성
       const url = URL.createObjectURL(file);
@@ -100,6 +129,7 @@ export default function CreatePostModal({
   }, [previewUrl]);
 
   // 업로드 핸들러
+  // 클라이언트에서 직접 Supabase Storage에 업로드하여 Next.js API Routes의 body size limit 문제를 우회
   const handleUpload = useCallback(async () => {
     if (!selectedFile) {
       setError("파일을 선택해주세요.");
@@ -110,27 +140,99 @@ export default function CreatePostModal({
     setError(null);
 
     try {
-      // FormData 생성
-      const formData = new FormData();
-      formData.append("image", selectedFile);
-      formData.append("title", title.trim() || "");
-      formData.append("caption", caption);
+      console.group("📤 게시물 업로드 시작");
+      console.log("📁 파일 정보:", {
+        이름: selectedFile.name,
+        크기: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+        타입: selectedFile.type,
+      });
 
-      // API 호출
+      // 1. Supabase Storage에 파일 업로드 (클라이언트에서 직접)
+      const fileExt = selectedFile.name.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(7)}.${fileExt}`;
+
+      console.log("📤 Supabase Storage 업로드 중...", fileName);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("posts")
+        .upload(fileName, selectedFile, {
+          contentType: selectedFile.type,
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError || !uploadData) {
+        console.error("❌ Storage 업로드 실패:", uploadError);
+        
+        let errorMessage = "미디어 파일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.";
+        if (uploadError) {
+          if (uploadError.message?.includes("file_size_limit")) {
+            errorMessage = "파일 크기가 너무 큽니다. 50MB 이하의 파일만 업로드할 수 있습니다.";
+          } else if (uploadError.message?.includes("allowed_mime_types")) {
+            errorMessage = "지원하지 않는 파일 형식입니다.";
+          } else {
+            errorMessage = `업로드 실패: ${uploadError.message || "알 수 없는 오류"}`;
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      console.log("✅ Storage 업로드 성공:", uploadData.path);
+
+      // 2. Public URL 생성
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const imageUrl = `${supabaseUrl}/storage/v1/object/public/posts/${fileName}`;
+
+      console.log("🔗 Public URL 생성:", imageUrl);
+
+      // 3. API를 호출하여 posts 테이블에 메타데이터만 저장
       const response = await fetch("/api/posts", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image_url: imageUrl,
+          title: title.trim() || null,
+          caption: caption.trim() || null,
+        }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || "게시물 업로드에 실패했습니다."
-        );
+        // 업로드된 파일 삭제 시도
+        try {
+          await supabase.storage.from("posts").remove([fileName]);
+          console.log("🗑️ 업로드 실패로 인한 파일 삭제 완료");
+        } catch (removeError) {
+          console.error("❌ 파일 삭제 실패:", removeError);
+        }
+
+        const responseText = await response.text();
+        let errorData: any = {};
+        
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          errorData = { error: responseText || "알 수 없는 오류가 발생했습니다." };
+        }
+        
+        const errorMessage = errorData.error || "게시물 저장에 실패했습니다.";
+        console.error("❌ API 호출 실패:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorMessage,
+        });
+        
+        throw new Error(errorMessage);
       }
 
       // 성공 처리
       const data = await response.json();
+      console.log("✅ 게시물 생성 성공:", data.id);
+      console.groupEnd();
 
       // 상태 초기화
       handleRemoveImage();
@@ -150,7 +252,7 @@ export default function CreatePostModal({
         window.location.reload();
       }
     } catch (err) {
-      console.error("Upload error:", err);
+      console.error("❌ 업로드 에러:", err);
       let errorMessage = "게시물 업로드에 실패했습니다. 다시 시도해주세요.";
       
       if (err instanceof TypeError && err.message === "Failed to fetch") {
@@ -161,8 +263,9 @@ export default function CreatePostModal({
       
       setError(errorMessage);
       setUploading(false);
+      console.groupEnd();
     }
-  }, [selectedFile, title, caption, onOpenChange, onSuccess, handleRemoveImage]);
+  }, [selectedFile, title, caption, onOpenChange, onSuccess, handleRemoveImage, supabase]);
 
   // 모달 닫기 핸들러
   const handleClose = useCallback(() => {
