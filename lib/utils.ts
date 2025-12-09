@@ -90,30 +90,33 @@ export function truncateText(text: string, maxLines: number = 2): {
 }
 
 /**
- * 이미지 파일 검증
+ * 미디어 파일 검증 (이미지 + 동영상)
  * 
  * @param file - 검증할 파일
- * @param maxSizeMB - 최대 크기 (MB, 기본값: 5)
+ * @param maxSizeMB - 최대 크기 (MB, 기본값: 50)
  * @returns { valid: boolean, error?: string }
  * 
  * @example
  * ```ts
- * const result = validateImageFile(file);
+ * const result = validateMediaFile(file);
  * if (!result.valid) {
  *   console.error(result.error);
  * }
  * ```
  */
-export function validateImageFile(
+export function validateMediaFile(
   file: File,
-  maxSizeMB: number = 5
+  maxSizeMB: number = 50
 ): { valid: boolean; error?: string } {
-  // 파일 타입 검증
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  // 파일 타입 검증 (이미지 + 동영상)
+  const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+  const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
+  const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
+  
   if (!allowedTypes.includes(file.type)) {
     return {
       valid: false,
-      error: "JPEG, PNG, WebP 이미지만 업로드할 수 있습니다.",
+      error: "JPEG, PNG, WebP 이미지 또는 MP4, WebM, QuickTime, AVI 동영상만 업로드할 수 있습니다.",
     };
   }
 
@@ -122,11 +125,22 @@ export function validateImageFile(
   if (file.size > maxSizeBytes) {
     return {
       valid: false,
-      error: `이미지 크기는 ${maxSizeMB}MB 이하여야 합니다.`,
+      error: `파일 크기는 ${maxSizeMB}MB 이하여야 합니다.`,
     };
   }
 
   return { valid: true };
+}
+
+/**
+ * @deprecated validateMediaFile을 사용하세요
+ * 이미지 파일 검증 (하위 호환성을 위해 유지)
+ */
+export function validateImageFile(
+  file: File,
+  maxSizeMB: number = 5
+): { valid: boolean; error?: string } {
+  return validateMediaFile(file, maxSizeMB);
 }
 
 /**

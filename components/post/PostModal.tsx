@@ -62,6 +62,12 @@ interface PostModalProps {
   onSaveRemove?: (postId: string) => void; // 저장 취소 시 콜백 (저장된 게시물 페이지에서 사용)
 }
 
+// 미디어 타입 확인 헬퍼 함수
+function isVideoUrl(url: string): boolean {
+  const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.quicktime'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+}
+
 function PostModal({
   postId,
   post: initialPost,
@@ -592,18 +598,29 @@ function PostModal({
   }
 
   // Desktop 레이아웃 (모달)
+  const isVideo = post ? isVideoUrl(post.image_url) : false;
   const desktopContent = (
     <div className="flex h-[90vh] max-h-[900px]">
-      {/* 이미지 영역 (50%) */}
+      {/* 미디어 영역 (50%) */}
       <div className="relative flex-1 bg-black flex items-center justify-center">
-        <Image
-          src={post.image_url}
-          alt={post.caption || "게시물 이미지"}
-          fill
-          className="object-contain"
-          sizes="(max-width: 768px) 100vw, 450px"
-          priority
-        />
+        {isVideo ? (
+          <video
+            src={post.image_url}
+            className="w-full h-full max-h-full object-contain"
+            controls
+            playsInline
+            preload="metadata"
+          />
+        ) : (
+          <Image
+            src={post.image_url}
+            alt={post.caption || "게시물 이미지"}
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 450px"
+            priority
+          />
+        )}
       </div>
 
       {/* 댓글 영역 (50%) */}
@@ -824,17 +841,27 @@ function PostModal({
           />
         </div>
 
-        {/* 이미지 */}
+        {/* 미디어 */}
         <div className="relative w-full bg-black flex items-center justify-center">
-          <Image
-            src={post.image_url}
-            alt={post.caption || "게시물 이미지"}
-            width={768}
-            height={768}
-            className="w-full h-auto max-h-[80vh] object-contain"
-            sizes="100vw"
-            priority
-          />
+          {isVideo ? (
+            <video
+              src={post.image_url}
+              className="w-full h-auto max-h-[80vh] object-contain"
+              controls
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <Image
+              src={post.image_url}
+              alt={post.caption || "게시물 이미지"}
+              width={768}
+              height={768}
+              className="w-full h-auto max-h-[80vh] object-contain"
+              sizes="100vw"
+              priority
+            />
+          )}
         </div>
 
         {/* 액션 버튼 및 좋아요 수 */}

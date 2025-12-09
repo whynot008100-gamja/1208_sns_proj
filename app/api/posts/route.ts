@@ -140,28 +140,31 @@ export async function POST(request: NextRequest) {
     const title = formData.get("title") as string | null;
     const caption = formData.get("caption") as string | null;
 
-    // 3. 이미지 파일 검증
+    // 3. 미디어 파일 검증
     if (!imageFile) {
       return NextResponse.json(
-        { error: "이미지 파일이 필요합니다." },
+        { error: "미디어 파일이 필요합니다." },
         { status: 400 }
       );
     }
 
-    // 파일 타입 검증
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    // 파일 타입 검증 (이미지 + 동영상)
+    const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+    const allowedVideoTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
+    const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
+    
     if (!allowedTypes.includes(imageFile.type)) {
       return NextResponse.json(
-        { error: "JPEG, PNG, WebP 이미지만 업로드할 수 있습니다." },
+        { error: "JPEG, PNG, WebP 이미지 또는 MP4, WebM, QuickTime, AVI 동영상만 업로드할 수 있습니다." },
         { status: 400 }
       );
     }
 
-    // 파일 크기 검증 (5MB)
-    const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+    // 파일 크기 검증 (50MB)
+    const maxSizeBytes = 50 * 1024 * 1024; // 50MB
     if (imageFile.size > maxSizeBytes) {
       return NextResponse.json(
-        { error: "이미지 크기는 5MB 이하여야 합니다." },
+        { error: "파일 크기는 50MB 이하여야 합니다." },
         { status: 400 }
       );
     }

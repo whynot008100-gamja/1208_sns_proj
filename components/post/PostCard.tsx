@@ -43,6 +43,12 @@ interface PostCardProps {
   isPriority?: boolean; // LCP 이미지 최적화용
 }
 
+// 미디어 타입 확인 헬퍼 함수
+function isVideoUrl(url: string): boolean {
+  const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.quicktime'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+}
+
 function PostCard({
   post,
   user,
@@ -55,6 +61,7 @@ function PostCard({
   onSaveRemove,
   isPriority = false,
 }: PostCardProps) {
+  const isVideo = isVideoUrl(post.image_url);
   const { user: clerkUser } = useUser();
   const supabase = useClerkSupabaseClient();
   const [showFullCaption, setShowFullCaption] = useState(false);
@@ -316,7 +323,7 @@ function PostCard({
         </div>
       )}
 
-      {/* 이미지 영역 (원본 비율 유지) */}
+      {/* 미디어 영역 (원본 비율 유지) */}
       <div
         className="relative w-full bg-gray-100 cursor-pointer flex items-center justify-center"
         onClick={() => onImageClick?.(post.id)}
@@ -330,51 +337,62 @@ function PostCard({
         }}
         aria-label="게시물 상세 보기"
       >
-        <Image
-          src={post.image_url}
-          alt={post.caption || "게시물 이미지"}
-          width={630}
-          height={630}
-          className="w-full h-auto max-h-[80vh] object-contain"
-          sizes="(max-width: 768px) 100vw, 630px"
-          priority={isPriority}
-          loading={isPriority ? "eager" : "lazy"}
-          onDoubleClick={async (e) => {
-            e.stopPropagation(); // 모달 열기 방지
-            // 더블탭 좋아요
-            if (!isLiked) {
-              setIsLiked(true); // 낙관적 업데이트
-              
-              try {
-                const response = await fetch("/api/likes", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ postId: post.id }),
-                });
+        {isVideo ? (
+          <video
+            src={post.image_url}
+            className="w-full h-auto max-h-[80vh] object-contain"
+            controls
+            playsInline
+            preload="metadata"
+            onClick={(e) => e.stopPropagation()} // 비디오 클릭 시 모달 열기 방지
+          />
+        ) : (
+          <Image
+            src={post.image_url}
+            alt={post.caption || "게시물 이미지"}
+            width={630}
+            height={630}
+            className="w-full h-auto max-h-[80vh] object-contain"
+            sizes="(max-width: 768px) 100vw, 630px"
+            priority={isPriority}
+            loading={isPriority ? "eager" : "lazy"}
+            onDoubleClick={async (e) => {
+              e.stopPropagation(); // 모달 열기 방지
+              // 더블탭 좋아요 (이미지에만 적용)
+              if (!isLiked) {
+                setIsLiked(true); // 낙관적 업데이트
+                
+                try {
+                  const response = await fetch("/api/likes", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ postId: post.id }),
+                  });
 
-                if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
-                  // 409 (이미 좋아요를 누른 경우)는 무시
-                  if (response.status !== 409) {
-                    throw new Error(errorData.error || "좋아요 추가에 실패했습니다.");
+                  if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    // 409 (이미 좋아요를 누른 경우)는 무시
+                    if (response.status !== 409) {
+                      throw new Error(errorData.error || "좋아요 추가에 실패했습니다.");
+                    }
                   }
-                }
 
-                // 성공 시 콜백 호출 (좋아요 수 업데이트용)
-                onLike?.(post.id, true);
-              } catch (err) {
-                // 에러 발생 시 상태 롤백
-                setIsLiked(false);
-                console.error("Double tap like error:", err);
+                  // 성공 시 콜백 호출 (좋아요 수 업데이트용)
+                  onLike?.(post.id, true);
+                } catch (err) {
+                  // 에러 발생 시 상태 롤백
+                  setIsLiked(false);
+                  console.error("Double tap like error:", err);
+                }
               }
-            }
-            // 큰 하트 애니메이션 표시
-            setShowDoubleTapHeart(true);
-            setTimeout(() => setShowDoubleTapHeart(false), 1000);
-          }}
-        />
+              // 큰 하트 애니메이션 표시
+              setShowDoubleTapHeart(true);
+              setTimeout(() => setShowDoubleTapHeart(false), 1000);
+            }}
+          />
+        )}
         {/* 더블탭 큰 하트 애니메이션 */}
         {showDoubleTapHeart && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
