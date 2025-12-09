@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/board.png",
         width: 1200,
         height: 630,
         alt: "Mini Instagram",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mini Instagram",
     description: "Instagram 스타일 SNS 애플리케이션",
-    images: ["/og-image.png"],
+    images: ["/board.png"],
   },
 };
 
