@@ -611,6 +611,15 @@ function PostModal({
           />
         </div>
 
+        {/* 타이틀 (헤더 아래) */}
+        {post.title && (
+          <div className="px-4 py-3 border-b border-[var(--instagram-border)]">
+            <h2 className="text-lg font-bold text-[var(--instagram-text-primary)] leading-tight">
+              {post.title}
+            </h2>
+          </div>
+        )}
+
         {/* 댓글 목록 (스크롤 가능) */}
         <div
           ref={commentAreaRef}

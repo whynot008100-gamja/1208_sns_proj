@@ -62,6 +62,7 @@ export async function GET(
       id: postStat.post_id,
       user_id: postStat.user_id,
       image_url: postStat.image_url,
+      title: postStat.title || null,
       caption: postStat.caption,
       created_at: postStat.created_at,
       updated_at: postStat.created_at, // post_stats에는 updated_at이 없으므로 created_at 사용

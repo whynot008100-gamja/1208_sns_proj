@@ -26,6 +26,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Upload, Loader2 } from "lucide-react";
 import { validateImageFile } from "@/lib/utils";
@@ -46,6 +47,7 @@ export default function CreatePostModal({
 }: CreatePostModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +108,7 @@ export default function CreatePostModal({
       // FormData 생성
       const formData = new FormData();
       formData.append("image", selectedFile);
+      formData.append("title", title.trim() || "");
       formData.append("caption", caption);
 
       // API 호출
@@ -126,6 +129,7 @@ export default function CreatePostModal({
 
       // 상태 초기화
       handleRemoveImage();
+      setTitle("");
       setCaption("");
       setUploading(false);
 
@@ -153,13 +157,14 @@ export default function CreatePostModal({
       setError(errorMessage);
       setUploading(false);
     }
-  }, [selectedFile, caption, onOpenChange, onSuccess, handleRemoveImage]);
+  }, [selectedFile, title, caption, onOpenChange, onSuccess, handleRemoveImage]);
 
   // 모달 닫기 핸들러
   const handleClose = useCallback(() => {
     if (uploading) return; // 업로드 중에는 닫기 불가
 
     handleRemoveImage();
+    setTitle("");
     setCaption("");
     setError(null);
     onOpenChange(false);
@@ -232,6 +237,21 @@ export default function CreatePostModal({
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+          )}
+
+          {/* 타이틀 입력 영역 */}
+          {previewUrl && (
+            <div className="px-6 py-4 border-t border-[var(--instagram-border)]">
+              <div className="space-y-2">
+                <Input
+                  placeholder="제목을 입력하세요... (선택사항)"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="text-base font-semibold"
+                  aria-label="게시물 제목 입력"
+                />
+              </div>
             </div>
           )}
 

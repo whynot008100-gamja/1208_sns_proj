@@ -31,6 +31,7 @@ export interface Post {
   id: string; // UUID
   user_id: string; // UUID
   image_url: string; // Supabase Storage URL
+  title: string | null; // 게시물 제목
   caption: string | null; // 최대 2,200자
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
@@ -91,6 +92,7 @@ export interface PostStats {
   post_id: string; // UUID
   user_id: string; // UUID
   image_url: string;
+  title: string | null; // 게시물 제목
   caption: string | null;
   created_at: string; // ISO timestamp
   likes_count: number;

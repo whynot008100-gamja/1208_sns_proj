@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
       id: stat.post_id,
       user_id: stat.user_id,
       image_url: stat.image_url,
+      title: stat.title || null,
       caption: stat.caption,
       created_at: stat.created_at,
       updated_at: stat.created_at, // post_stats에는 updated_at이 없으므로 created_at 사용

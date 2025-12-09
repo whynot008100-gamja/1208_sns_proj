@@ -91,6 +91,7 @@ export async function GET(request: NextRequest) {
       id: stat.post_id,
       user_id: stat.user_id,
       image_url: stat.image_url,
+      title: stat.title || null,
       caption: stat.caption,
       created_at: stat.created_at,
       updated_at: stat.created_at, // post_stats에는 updated_at이 없으므로 created_at 사용
@@ -136,6 +137,7 @@ export async function POST(request: NextRequest) {
     // 2. FormData 파싱
     const formData = await request.formData();
     const imageFile = formData.get("image") as File | null;
+    const title = formData.get("title") as string | null;
     const caption = formData.get("caption") as string | null;
 
     // 3. 이미지 파일 검증
@@ -218,6 +220,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: user.id,
         image_url: imageUrl,
+        title: title && title.trim() ? title.trim() : null,
         caption: caption && caption.trim() ? caption.trim() : null,
       })
       .select()
