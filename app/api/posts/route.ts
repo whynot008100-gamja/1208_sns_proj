@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkSupabaseClient } from "@/utils/supabase/clerk-server";
 import type { PostWithStats } from "@/lib/types";
+import { extractHashtags } from "@/lib/hashtags";
 
 // Route Segment Config: Next.js 15 API Routes 설정
 export const runtime = 'nodejs';
@@ -221,7 +222,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. 응답 반환 (PostWithStats 형식으로 변환)
+    // 6. 해시태그 추출 및 저장
+    const caption = body.caption && body.caption.trim() ? body.caption.trim() : null;
+    if (caption) {
+      const hashtagNames = extractHashtags(caption);
+      
+      if (hashtagNames.length > 0) {
+        try {
+          // 해시태그 저장 및 연결
+          for (const hashtagName of hashtagNames) {
+            // 6-1. 해시태그가 이미 존재하는지 확인
+            let { data: existingHashtag } = await supabase
+              .from("hashtags")
+              .select("id")
+              .eq("name", hashtagName)
+              .single();
+
+            let hashtagId: string;
+
+            if (!existingHashtag) {
+              // 6-2. 해시태그가 없으면 생성
+              const { data: newHashtag, error: insertHashtagError } = await supabase
+                .from("hashtags")
+                .insert({ name: hashtagName })
+                .select()
+                .single();
+
+              if (insertHashtagError || !newHashtag) {
+                console.error("Hashtag insert error:", insertHashtagError);
+                // 해시태그 저장 실패해도 게시물은 성공으로 처리
+                continue;
+              }
+
+              hashtagId = newHashtag.id;
+            } else {
+              hashtagId = existingHashtag.id;
+            }
+
+            // 6-3. 게시물-해시태그 연결
+            const { error: linkError } = await supabase
+              .from("post_hashtags")
+              .insert({
+                post_id: post.id,
+                hashtag_id: hashtagId,
+              });
+
+            if (linkError) {
+              // UNIQUE 제약조건 위반은 무시 (이미 연결된 경우)
+              if (linkError.code !== "23505") {
+                console.error("Post hashtag link error:", linkError);
+              }
+            }
+          }
+        } catch (hashtagError) {
+          console.error("Hashtag processing error:", hashtagError);
+          // 해시태그 처리 실패해도 게시물은 성공으로 처리
+        }
+      }
+    }
+
+    // 7. 응답 반환 (PostWithStats 형식으로 변환)
     const postWithStats: PostWithStats = {
       ...post,
       likes_count: 0,
