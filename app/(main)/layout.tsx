@@ -6,6 +6,9 @@
  * Desktop: Sidebar(244px) + Main Content
  * Tablet: Sidebar(72px) + Main Content
  * Mobile: Header + Main Content + BottomNav
+ * 
+ * 이 레이아웃은 로그인된 사용자만 접근 가능합니다.
+ * 비로그인 사용자는 middleware에서 로그인 페이지로 리다이렉트됩니다.
  *
  * @see docs/PRD.md
  */
